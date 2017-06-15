@@ -1,0 +1,93 @@
+{
+  "project_info": {
+    "project_number": "929511612295",
+    "firebase_url": "https://vkclub-c861b.firebaseio.com",
+    "project_id": "vkclub-c861b",
+    "storage_bucket": "vkclub-c861b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:929511612295:android:96131bf46fdb534d",
+        "android_client_info": {
+          "package_name": "chain.vkirirom"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "929511612295-to4cbrv04ep1mqold3kvrurue07tqcqg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlgr71CBQhbiUW-N12CdWUM5WjRJnPpVY"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:929511612295:android:09006d2a7ea880ed",
+        "android_client_info": {
+          "package_name": "com.example.admin.vkclub"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "929511612295-in5diahkk00ds1psu4k5u251hm8kurm6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.admin.vkclub",
+            "certificate_hash": "c5479992656baa0fd914192eb017ac40548a2d4d"
+          }
+        },
+        {
+          "client_id": "929511612295-to4cbrv04ep1mqold3kvrurue07tqcqg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlgr71CBQhbiUW-N12CdWUM5WjRJnPpVY"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "929511612295-to4cbrv04ep1mqold3kvrurue07tqcqg.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "929511612295-vog4laeehp8kqfpl18hrqmtgnngmshle.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "chain.vkirirom"
+              }
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
