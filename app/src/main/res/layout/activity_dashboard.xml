@@ -39,7 +39,7 @@
                 android:id="@+id/appMode"
                 android:layout_centerVertical="true"
                 android:layout_centerHorizontal="true"
-                android:text="IN-Kirirom Mode"
+                android:text="Identifying..."
                 android:textAllCaps="false"
                 android:textSize="11dp"
                 android:textColor="@color/goldenrod"/>
@@ -92,7 +92,7 @@
                 <ImageButton
                     android:layout_width="80dp"
                     android:layout_height="80dp"
-                    android:background="@drawable/profile_background"
+                    android:background="@drawable/module_background"
                     android:src="@drawable/ic_customer_service"
                     android:textAlignment="center"
                     android:id="@+id/serviceBtn"/>
@@ -117,7 +117,7 @@
                 <ImageButton
                     android:layout_width="80dp"
                     android:layout_height="80dp"
-                    android:background="@drawable/profile_background"
+                    android:background="@drawable/module_background"
                     android:src="@drawable/ic_placeholder"
                     android:id="@+id/mapBtn"/>
 
@@ -141,7 +141,7 @@
                 <ImageButton
                     android:layout_width="80dp"
                     android:layout_height="80dp"
-                    android:background="@drawable/profile_background"
+                    android:background="@drawable/module_background"
                     android:src="@drawable/ic_chat"/>
 
                 <TextView
@@ -176,7 +176,7 @@
                 <ImageButton
                     android:layout_width="80dp"
                     android:layout_height="80dp"
-                    android:background="@drawable/profile_background"
+                    android:background="@drawable/module_background"
                     android:src="@drawable/ic_about_us"/>
 
                 <TextView
@@ -199,8 +199,9 @@
                 <ImageButton
                     android:layout_width="80dp"
                     android:layout_height="80dp"
-                    android:background="@drawable/profile_background"
-                    android:src="@drawable/ic_id_card"/>
+                    android:background="@drawable/module_background"
+                    android:src="@drawable/ic_id_card"
+                    android:id="@+id/membership"/>
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -222,8 +223,9 @@
                 <ImageButton
                     android:layout_width="80dp"
                     android:layout_height="80dp"
-                    android:background="@drawable/profile_background"
-                    android:src="@drawable/ic_photo_camera"/>
+                    android:background="@drawable/module_background"
+                    android:src="@drawable/ic_photo_camera"
+                    android:id="@+id/media"/>
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -232,7 +234,7 @@
                     android:textStyle="bold"
                     android:padding="5dp"
                     android:layout_gravity="center_horizontal"
-                    android:textColor="@color/colorWhite"/>
+                    android:textColor="@color/colorWhite" />
             </LinearLayout>
 
         </LinearLayout>
@@ -254,29 +256,96 @@
         app:itemTextColor="@color/colorWhite"
         app:itemIconTint="@color/colorWhite"
         android:layout_gravity="start"
-        android:background="@color/colorBackground"
+        android:background="@color/colorWhite"
         android:id="@+id/nav_view">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:gravity="start">
+            android:gravity="start"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="30dp">
 
             <!--Place your ImageView here-->
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/vkirirom_logo"
+                android:src="@drawable/ic_user"
                 android:layout_gravity="center_horizontal"
-                android:background="@drawable/profile_background"/>
+                android:background="@drawable/profile_background"
+                android:padding="20sp"/>
 
-            <Button
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="LOGOUT"
-                android:id="@+id/logout"
-                android:layout_gravity="center"/>
+                android:text="Kirirom Institute of Technology"
+                android:textColor="#000000"
+                android:textStyle="bold"
+                android:layout_marginTop="10dp"
+                android:layout_gravity="center_horizontal"/>
+
+            <Button
+                android:layout_width="70dp"
+                android:layout_height="20dp"
+                android:text="FB Linked"
+                android:textAllCaps="false"
+                android:textSize="10dp"
+                android:background="@drawable/fb_link"
+                android:layout_gravity="center"
+                android:layout_marginTop="10dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="40dp">
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:text="Setting"
+                    android:id="@+id/setting"
+                    android:layout_gravity="center"
+                    android:background="@drawable/sidebar_module"
+                    android:layout_marginTop="10dp"
+                    android:textColor="@color/colorWhite"
+                    android:drawableLeft="@drawable/ic_settings"
+                    android:drawableRight="@drawable/ic_play_symbol"
+                    android:paddingLeft="20dp"
+                    android:paddingRight="10dp"
+                    android:textAllCaps="false"/>
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:text="Contact"
+                    android:id="@+id/contact"
+                    android:layout_gravity="center"
+                    android:background="@drawable/sidebar_module"
+                    android:layout_marginTop="1dp"
+                    android:textColor="@color/colorWhite"
+                    android:drawableLeft="@drawable/ic_phone_call"
+                    android:drawableRight="@drawable/ic_play_symbol"
+                    android:paddingLeft="20dp"
+                    android:paddingRight="10dp"
+                    android:textAllCaps="false"/>
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:text="Logout"
+                    android:id="@+id/logout"
+                    android:layout_gravity="center"
+                    android:background="@drawable/sidebar_module"
+                    android:layout_marginTop="1dp"
+                    android:textColor="@color/colorWhite"
+                    android:drawableLeft="@drawable/ic_logout"
+                    android:drawableRight="@drawable/ic_play_symbol"
+                    android:paddingLeft="20dp"
+                    android:paddingRight="10dp"
+                    android:textAllCaps="false"/>
+            </LinearLayout>
         </LinearLayout>
 
     </android.support.design.widget.NavigationView>

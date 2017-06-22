@@ -1,11 +1,15 @@
 package com.example.admin.vkclub;
 
+import android.*;
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.app.ActionBar;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -37,6 +41,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.facebook.login.LoginManager;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -46,11 +51,17 @@ import com.google.android.gms.location.LocationServices;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Handler;
+
+
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
+import static android.Manifest.permission.MANAGE_DOCUMENTS;
 
 public class Dashboard extends AppCompatActivity {
 
@@ -60,63 +71,31 @@ public class Dashboard extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
     private Button logoutBtn, opendrawer, appmode;
-    private ImageButton mapButton;
+    private ImageButton mapButton, membershipBtn, mediaBtn;
     private GoogleApiClient mGoogleApiClient;
     private Location mBestReading;
     private LocationRequest mLocationRequest;
 
-    private LocationManager locationManager;
-    private LocationListener locationListener;
-
-//    private static final long ONE_MIN = 1000 * 60;
-//    private static final long TWO_MIN = ONE_MIN * 2;
-//    private static final long FIVE_MIN = ONE_MIN * 5;
-//    private static final long POLLING_FREQ = 1000 * 30;
-//    private static final long FASTEST_UPDATE_FREQ = 1000 * 5;
-//    private static final float MIN_ACCURACY = 25.0f;
-//    private static final float MIN_LAST_READ_ACCURACY = 500.0f;
-//    private final static int REQUEST_RESOLVE_ERROR = 1001;
-
-    TextView weltv;
-
+    private BroadcastReceiver broadcastReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
 
-        weltv = (TextView)findViewById(R.id.welcomeMsg);
-
-        locationListener = new LocationListener() {
-            @Override
-            public void onLocationChanged(Location location) {
-
-            }
-        };
-
-//        if (!servicesAvailable()) {
-//            Toast.makeText(Dashboard.this,
-//                    "Google Play Service is not available",
-//                    Toast.LENGTH_LONG).show();
-//        } else {
-//            Toast.makeText(Dashboard.this,
-//                    "Google Play Service is available",
-//                    Toast.LENGTH_LONG).show();
-//        }
-//
-//        mLocationRequest = LocationRequest.create();
-//        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-//        mLocationRequest.setInterval(POLLING_FREQ);
-//        mLocationRequest.setFastestInterval(FASTEST_UPDATE_FREQ);
-//
-//        mGoogleApiClient = new GoogleApiClient.Builder(this)
-//                .addApi(LocationServices.API)
-//                .addConnectionCallbacks(this)
-//                .addOnConnectionFailedListener(this)
-//                .build();
+        appmode = (Button) findViewById(R.id.appMode);
 
         // Instantiate ImageButton
         mapButton = (ImageButton) findViewById(R.id.mapBtn);
+        membershipBtn = (ImageButton)findViewById(R.id.membership);
+        mediaBtn = (ImageButton)findViewById(R.id.media);
+
+        if(!runtime_permissions())
+            start_gps_service();
+
+        // upcoming module
+        upComingModule(mediaBtn, "media");
+        upComingModule(membershipBtn, "membership");
 
         // call navigate
         navigateScreen(mapButton, Map.class);
@@ -141,6 +120,11 @@ public class Dashboard extends AppCompatActivity {
         window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorStatusBar));
 
         mAuth = FirebaseAuth.getInstance();
+        FirebaseUser user = mAuth.getCurrentUser();
+        if(user != null){
+            String name = user.getDisplayName();
+            presentDialog("Hello World", name);
+        }
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
@@ -157,13 +141,85 @@ public class Dashboard extends AppCompatActivity {
         logoutBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mAuth.signOut();
+                mAuth.getInstance().signOut();
+                LoginManager.getInstance().logOut();
                 Intent intent = new Intent(Dashboard.this, LoginActivity.class);
                 startActivity(intent);
             }
         });
     }
 
+    private void upComingModule(ImageButton btn, final String identifier){
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String title = "Coming Soon!";
+                switch (identifier){
+                    case "media":
+                        presentDialog(title, "Introducing vKirirom Media will be available soon.");
+                        break;
+                    case "membership":
+                        presentDialog(title, "Introducing vKirirom membership card with vKpoint will be available soon.");
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
+    }
+
+    private void start_gps_service(){
+        Intent i = new Intent(getApplicationContext(), GPS_Service.class);
+        startService(i);
+    }
+
+    private boolean runtime_permissions() {
+        if (Build.VERSION.SDK_INT >= 23 && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 100);
+            return true;
+        }
+        return false;
+    }
+
+    private void calcDistance(double currentLat, double currentLon){
+        //Earth Ray
+        double R = 6371;
+
+        //Get latlong value diferences between two points
+        double dLat = (currentLat - 11.317655) * Math.PI / 180;
+        double dLon = (currentLon - 104.064933) * Math.PI / 180;
+
+        //Calculate distance with Haversine Formula
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(11.317655 * Math.PI / 180)
+                * Math.cos(currentLat * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        double distance  = R * c;
+
+        if(distance < 17){
+            appmode.setText("IN-Kirirom Mode");
+        } else if(distance >= 17){
+            appmode.setText("OFF-Kirirom Mode");
+        } else {
+            appmode.setText("Unidentified");
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if(requestCode == 100){
+            if(grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED){
+                // READY FOR LOCATION TRACKING
+                start_gps_service();
+
+            }else {
+                // Request Runtime Permission again
+                runtime_permissions();
+            }
+        }
+    }
 
     @Override
     protected void onStart() {
@@ -187,6 +243,38 @@ public class Dashboard extends AppCompatActivity {
 //        if (mGoogleApiClient != null) {
 //            mGoogleApiClient.connect();
 //        }
+
+        if(broadcastReceiver == null){
+            broadcastReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    //appmode.setText(""+intent.getExtras().get("latitude"));
+//                    Location centreLocation = new Location("center_location");
+//                    Location currentLocation = new Location("current_location");
+//                    centreLocation.setLatitude(11.317655);
+//                    centreLocation.setLongitude(104.064933);
+//                    currentLocation.setLatitude((Double) intent.getExtras().get("latitude"));
+//                    currentLocation.setLongitude((Double) intent.getExtras().get("longitude"));
+//
+//                    double distance = centreLocation.distanceTo(currentLocation);
+//                    makeToast("++++++++++++++++============ " + distance);
+
+                    double currentLat = Double.parseDouble(intent.getExtras().get("latitude").toString());
+                    double currentLon = Double.parseDouble(intent.getExtras().get("longitude").toString());
+                    calcDistance(currentLat, currentLon);
+                }
+            };
+        }
+
+        registerReceiver(broadcastReceiver, new IntentFilter("location_update"));
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (broadcastReceiver != null){
+            unregisterReceiver(broadcastReceiver);
+        }
     }
 
     @Override
@@ -196,20 +284,6 @@ public class Dashboard extends AppCompatActivity {
             mGoogleApiClient.disconnect();
         }
     }
-
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        if (requestCode == REQUEST_RESOLVE_ERROR) {
-//
-//            if (resultCode == RESULT_OK) {
-//                // Make sure the app is not already connected or attempting to connect
-//                if (!mGoogleApiClient.isConnecting() &&
-//                        !mGoogleApiClient.isConnected()) {
-//                    mGoogleApiClient.connect();
-//                }
-//            }
-//        }
-//    }
 
     @Override
     public void onBackPressed() {
@@ -228,168 +302,25 @@ public class Dashboard extends AppCompatActivity {
         });
     }
 
-//    @Override
-//    public void onConnected(@Nullable Bundle bundle) {
-//        // TODO Auto-generated method stub
-//        // Get first reading. Get additional location updates if necessary
-//        if (servicesAvailable()) {
-//
-////            new Timer().scheduleAtFixedRate(new TimerTask() {
-////                @Override
-////                public void run() {
-////                    runOnUiThread(new Runnable() {
-////                        @Override
-////                        public void run() {
-////                            // Get best last location measurement meeting criteria
-////                            mBestReading = bestLastKnownLocation(MIN_LAST_READ_ACCURACY, FIVE_MIN);
-////                            weltv.setText(String.valueOf(mBestReading.getLatitude()));
-////                        }
-////                    });
-////                }
-////            }, 0, 7000);
-//
-//            mBestReading = bestLastKnownLocation(MIN_LAST_READ_ACCURACY, FIVE_MIN);
-//            weltv.setText(String.valueOf(mBestReading.getLatitude()));
-//
-//            if (null == mBestReading
-//                    || mBestReading.getAccuracy() > MIN_LAST_READ_ACCURACY
-//                    || mBestReading.getTime() < System.currentTimeMillis() - TWO_MIN) {
-//
-//                weltv.setText("mBestReading is null");
-//                if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-//                    // TODO: Consider calling
-//                    //    ActivityCompat#requestPermissions
-//                    // here to request the missing permissions, and then overriding
-//                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-//                    //                                          int[] grantResults)
-//                    // to handle the case where the user grants the permission. See the documentation
-//                    // for ActivityCompat#requestPermissions for more details.
-//                    return;
-//                }
-//                LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, (LocationListener) this);
-//
-//
-//                // Schedule a runnable to unregister location listeners
-//                Executors.newScheduledThreadPool(1).schedule(new Runnable() {
-//
-//                    @Override
-//                    public void run() {
-//                        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, Dashboard.this);
-//                    }
-//
-//                }, ONE_MIN, TimeUnit.MILLISECONDS);
-//            }
-//        }
-//    }
+    private void makeToast(String text){
+        Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
+    }
 
-//    @Override
-//    public void onConnectionSuspended(int i) {
-//        Toast.makeText(Dashboard.this,
-//                "onConnectionSuspended: " + String.valueOf(i),
-//                Toast.LENGTH_LONG).show();
-//    }
+    private void presentDialog(String title, String msg) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(title);
+        builder.setMessage(msg);
+        builder.setCancelable(true);
 
-//    @Override
-//    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-//        // TODO Auto-generated method stub
-//        if (connectionResult.hasResolution()) {
-//            try {
-//                // Start an Activity that tries to resolve the error
-//                connectionResult.startResolutionForResult(this,
-//                        REQUEST_RESOLVE_ERROR);
-//				/*
-//				 * Thrown if Google Play services canceled the original
-//				 * PendingIntent
-//				 */
-//            } catch (IntentSender.SendIntentException e) {
-//                // Log the error
-//                e.printStackTrace();
-//            }
-//        } else {
-//			/*
-//			 * If no resolution is available, display a dialog to the user with
-//			 * the error.
-//			 */
-//            Log.d("Connection Failed:", "" + connectionResult.getErrorCode()
-//                    + " " + connectionResult.toString());
-//            showErrorDialog(connectionResult.getErrorCode());
-//        }
-//    }
+        builder.setPositiveButton(
+                "Yes",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
 
-
-//    private boolean servicesAvailable() {
-//        int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-//        if (ConnectionResult.SUCCESS == resultCode) {
-//            return true;
-//        } else {
-//            GooglePlayServicesUtil.getErrorDialog(resultCode, this, 0).show();
-//            return false;
-//        }
-//    }
-//
-//    private void showErrorDialog(int errorCode) {
-//        // Get the error dialog from Google Play services
-//        Dialog errorDialog = GooglePlayServicesUtil.getErrorDialog(
-//                errorCode,
-//                this,
-//                REQUEST_RESOLVE_ERROR);
-//
-//        // If Google Play services can provide an error dialog
-//        if (errorDialog != null) {
-//            errorDialog.show();
-//        }
-//    }
-
-//    @Override
-//    public void onLocationChanged(Location location) {
-//        Toast.makeText(Dashboard.this, "onLocationChanged...", Toast.LENGTH_SHORT).show();
-//        // TODO Auto-generated method stub
-//        // Determine whether new location is better than current best
-//        // estimate
-//        if (null == mBestReading || location.getAccuracy() < mBestReading.getAccuracy()) {
-//            mBestReading = location;
-//
-//            if (mBestReading.getAccuracy() < MIN_ACCURACY) {
-//                LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-//            }
-//        }
-//    }
-
-//    private Location bestLastKnownLocation(float minAccuracy, long minTime) {
-//        Location bestResult = null;
-//        float bestAccuracy = Float.MAX_VALUE;
-//        long bestTime = Long.MIN_VALUE;
-//
-//        // Get the best most recent location currently available
-//        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-//            // TODO: Consider calling
-//            //    ActivityCompat#requestPermissions
-//            // here to request the missing permissions, and then overriding
-//            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-//            //                                          int[] grantResults)
-//            // to handle the case where the user grants the permission. See the documentation
-//            // for ActivityCompat#requestPermissions for more details.
-//            return bestResult;
-//        }
-//        Location mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-//
-//        if (mCurrentLocation != null) {
-//            float accuracy = mCurrentLocation.getAccuracy();
-//            long time = mCurrentLocation.getTime();
-//
-//            if (accuracy < bestAccuracy) {
-//                bestResult = mCurrentLocation;
-//                bestAccuracy = accuracy;
-//                bestTime = time;
-//            }
-//        }
-//
-//        // Return best reading or null
-//        if (bestAccuracy > minAccuracy || bestTime < minTime) {
-//            return null;
-//        }
-//        else {
-//            return bestResult;
-//        }
-//    }
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
 }
