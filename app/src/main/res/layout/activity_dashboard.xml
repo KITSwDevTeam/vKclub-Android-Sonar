@@ -83,14 +83,18 @@
                 android:orientation="vertical"
                 >
 
-                <ImageButton
+                <Button
                     android:layout_width="180dp"
                     android:layout_height="180dp"
-                    android:background="#00FA88"
-                    android:src="@drawable/ic_customer_service"
+                    android:background="#1a6945"
                     android:textAlignment="center"
                     android:padding="50dp"
-                    android:id="@+id/serviceBtn"/>
+                    android:id="@+id/serviceBtn"
+                    android:drawableTop="@drawable/ic_customer_service"
+                    android:text="Service"
+                    android:textAllCaps="false"
+                    android:textColor="@color/colorWhite"
+                    android:textSize="20dp" />
 
                 <!--<TextView-->
                     <!--android:layout_width="wrap_content"-->
@@ -108,12 +112,17 @@
                 android:orientation="vertical"
                >
 
-                <ImageButton
+                <Button
                     android:layout_width="180dp"
                     android:layout_height="180dp"
-                    android:background="#05CC70"
-                    android:src="@drawable/ic_placeholder"
-                    android:id="@+id/mapBtn"/>
+                    android:background="#1a6939"
+                    android:padding="50dp"
+                    android:drawableTop="@drawable/ic_placeholder"
+                    android:id="@+id/mapBtn"
+                    android:text="Map"
+                    android:textAllCaps="false"
+                    android:textColor="@color/colorWhite"
+                    android:textSize="20dp"/>
 
                 <!--<TextView-->
                     <!--android:layout_width="wrap_content"-->
@@ -141,11 +150,17 @@
                 android:orientation="vertical"
                 >
 
-                <ImageButton
+                <Button
                     android:layout_width="180dp"
                     android:layout_height="180dp"
-                    android:background="#00CC66"
-                    android:src="@drawable/ic_about_us"/>
+                    android:background="#1a6935"
+                    android:padding="50dp"
+                    android:src="@drawable/ic_about_us"
+                    android:text="About us"
+                    android:textAllCaps="false"
+                    android:textColor="@color/colorWhite"
+                    android:drawableTop="@drawable/ic_about_us"
+                    android:textSize="20dp"/>
 
                 <!--<TextView-->
                     <!--android:layout_width="wrap_content"-->
@@ -163,11 +178,16 @@
                 android:orientation="vertical"
                 >
 
-                <ImageButton
+                <Button
                     android:layout_width="180dp"
                     android:layout_height="180dp"
-                    android:background="#33FF99"
-                    android:src="@drawable/ic_id_card"/>
+                    android:background="#1a6945"
+                    android:padding="50dp"
+                    android:drawableTop="@drawable/ic_id_card"
+                    android:text="Membership"
+                    android:textAllCaps="false"
+                    android:textColor="@color/colorWhite"
+                    />
 
                 <!--<TextView-->
                     <!--android:layout_width="wrap_content"-->
@@ -290,9 +310,9 @@
                     android:layout_marginTop="150dp"
                     android:text="Emergency SOS"
                     android:textAllCaps="false"
-                    android:textColor="#FF0000"
+                    android:textColor="@color/colorWhite"
                     android:layout_marginBottom="2dp"
-                    android:backgroundTint="#09AA22"
+                    android:backgroundTint="#EE0000"
 
                     />
             </LinearLayout>

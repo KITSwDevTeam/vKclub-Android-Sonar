@@ -7,35 +7,35 @@
     >
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="1px"
-        android:gravity="center_horizontal">
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal"
+        >
 
         <TextView
             android:id="@+id/view1"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginRight="15mm"
             android:text="Accommodation"
-            android:textSize="32sp"
-
-            />
+            android:padding="10dp"
+            android:textSize="15sp" />
 
         <TextView
             android:id="@+id/view2"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginRight="15mm"
             android:text="Service"
-            android:textSize="32sp" />
+            android:padding="10dp"
+            android:textSize="15sp" />
 
         <TextView
             android:id="@+id/view3"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Properties"
-            android:textSize="32sp" />
+            android:padding="10dp"
+            android:textSize="15sp" />
 
     </LinearLayout>
 

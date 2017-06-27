@@ -33,7 +33,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.ImageButton;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -60,7 +60,7 @@ public class Dashboard extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
     private Button logoutBtn, opendrawer, appmode;
-    private ImageButton mapButton;
+    private Button mapButton;
     private GoogleApiClient mGoogleApiClient;
     private Location mBestReading;
     private LocationRequest mLocationRequest;
@@ -116,7 +116,7 @@ public class Dashboard extends AppCompatActivity {
 //                .build();
 
         // Instantiate ImageButton
-        mapButton = (ImageButton) findViewById(R.id.mapBtn);
+        mapButton = (Button) findViewById(R.id.mapBtn);
 
         // call navigate
         navigateScreen(mapButton, Map.class);
@@ -135,10 +135,12 @@ public class Dashboard extends AppCompatActivity {
             }
         });
 
-        Window window = this.getWindow();
-        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorStatusBar));
+        if(Build.VERSION.SDK_INT >= 21){
+            Window window = this.getWindow();
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorStatusBar));
+        }
 
         mAuth = FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
@@ -218,7 +220,7 @@ public class Dashboard extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private void navigateScreen(ImageButton btn, final Class next) {
+    private void navigateScreen(Button btn, final Class next) {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
