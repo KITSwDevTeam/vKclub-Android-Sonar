@@ -30,7 +30,6 @@ import static com.example.admin.vkclub.R.id.emailValidation;
 import static com.example.admin.vkclub.R.id.nameValidation;
 
 public class CreateAccount extends AppCompatActivity {
-
     // Declare Firebase auth
     FirebaseAuth mAuth = FirebaseAuth.getInstance();
 
