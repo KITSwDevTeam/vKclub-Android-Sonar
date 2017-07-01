@@ -46,14 +46,6 @@
       },
       "oauth_client": [
         {
-          "client_id": "929511612295-17ga4kr0mjotem3uemsdajfikaf7rvkc.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.example.admin.vkclub",
-            "certificate_hash": "b9680d4a171d7712fba55e3484c4b52c08f55768"
-          }
-        },
-        {
           "client_id": "929511612295-la23tfgqu4r60q3skpc69tltg9vecrqe.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
