@@ -225,12 +225,13 @@
 
             <!--Place your ImageView here-->
             <ImageView
+                android:id="@+id/imageView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_user"
                 android:layout_gravity="center_horizontal"
                 android:background="@drawable/profile_background"
-                android:padding="20sp"/>
+                android:padding="50sp"
+                android:src="@drawable/ic_user" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -259,12 +260,12 @@
 
                 <Button
                     android:layout_width="match_parent"
-                    android:layout_height="60dp"
+                    android:layout_height="50dp"
                     android:text="Setting"
                     android:id="@+id/setting"
                     android:layout_gravity="center"
                     android:background="@drawable/sidebar_module"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="30dp"
                     android:textColor="@color/colorWhite"
                     android:drawableLeft="@drawable/ic_settings"
                     android:drawableRight="@drawable/ic_play_symbol"
@@ -274,7 +275,7 @@
 
                 <Button
                     android:layout_width="match_parent"
-                    android:layout_height="60dp"
+                    android:layout_height="50dp"
                     android:text="Contact"
                     android:id="@+id/contact"
                     android:layout_gravity="center"
@@ -289,7 +290,7 @@
 
                 <Button
                     android:layout_width="match_parent"
-                    android:layout_height="60dp"
+                    android:layout_height="50dp"
                     android:text="Logout"
                     android:id="@+id/logout"
                     android:layout_gravity="center"
@@ -306,13 +307,13 @@
                     android:layout_width="200dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
-                    android:background="@drawable/app_mode"
-                    android:layout_marginTop="150dp"
+                    android:background="@drawable/emergency_btn"
+                    android:layout_marginTop="100dp"
                     android:text="Emergency SOS"
                     android:textAllCaps="false"
                     android:textColor="@color/colorWhite"
                     android:layout_marginBottom="2dp"
-                    android:backgroundTint="#EE0000"
+                    android:id="@+id/sos"
 
                     />
             </LinearLayout>

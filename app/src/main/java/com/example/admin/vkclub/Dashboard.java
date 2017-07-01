@@ -20,6 +20,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -46,11 +47,14 @@ import com.google.android.gms.location.LocationServices;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Handler;
+
+import static android.app.PendingIntent.getActivity;
 
 public class Dashboard extends AppCompatActivity {
 
@@ -67,6 +71,8 @@ public class Dashboard extends AppCompatActivity {
 
     private LocationManager locationManager;
     private LocationListener locationListener;
+
+//    private Button mDoneButton;
 
 //    private static final long ONE_MIN = 1000 * 60;
 //    private static final long TWO_MIN = ONE_MIN * 2;
@@ -164,6 +170,57 @@ public class Dashboard extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+
+        //Alert button sos
+        Button sos = (Button) findViewById(R.id.sos);
+        sos.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Creating alert Dialog with two Buttons
+
+                AlertDialog.Builder alertDialog = new AlertDialog.Builder(Dashboard.this);
+
+                // Setting Dialog Title
+                alertDialog.setTitle("Please help! ");
+
+                // Setting Dialog Message
+                alertDialog.setMessage("I'm currently facing an emergency problem.");
+
+                // Setting Icon to Dialog
+//                alertDialog.setIcon(R.drawable.delete);
+
+                // Setting Positive "Yes" Button
+                alertDialog.setPositiveButton("Confirm",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,int which) {
+
+                                // Write your code here to execute after dialog
+                                Toast.makeText(getApplicationContext(), "You clicked on YES", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                // Setting Negative "NO" Button
+                alertDialog.setNegativeButton("Cancel",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,	int which) {
+                                // Write your code here to execute after dialog
+                                Toast.makeText(getApplicationContext(), "You clicked on NO", Toast.LENGTH_SHORT).show();
+                                dialog.cancel();
+                            }
+                        });
+
+                // Showing Alert Message
+                alertDialog.show();
+            }
+        });
+
+
+
+        // alert dialog pushing notification
+
+//        mDoneButton = (Button) findViewById(R.id.openNotification);
+//        mDoneButton.setOnClickListener((View.OnClickListener) this);
+
     }
 
 
@@ -229,6 +286,26 @@ public class Dashboard extends AppCompatActivity {
             }
         });
     }
+
+//    @Override
+//    public void onClick(DialogInterface dialogInterface, int i) {
+//
+//        final CharSequence[] items = {
+//                "Rajesh", "Mahesh", "Vijayakumar"
+//        };
+//
+//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//        builder.setTitle("Make your selection");
+//        builder.setItems(items, new DialogInterface.OnClickListener() {
+//            public void onClick(DialogInterface dialog, int item) {
+//                // Do something with the selection
+//                mDoneButton.setText(items[item]);
+//            }
+//        });
+//        AlertDialog alert = builder.create();
+//        alert.show();
+//    }
+
 
 //    @Override
 //    public void onConnected(@Nullable Bundle bundle) {
