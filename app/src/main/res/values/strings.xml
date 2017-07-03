@@ -28,4 +28,9 @@
     <string name="off_kirirom">OFF-Kirirom Mode</string>
     <string name="identifying">Identifying...</string>
     <string name="google_map_api_key">AIzaSyAjLIi02Zxk20luurcm1jXmTJl71rcnhRU</string>
+    <string name="dialog_fire_missiles" />
+    <string name="fire" />
+    <string name="cancel" />
+    <string name="ok" />
+    <string name="confirm" />
 </resources>
