@@ -39,7 +39,7 @@
                 android:id="@+id/appMode"
                 android:layout_centerVertical="true"
                 android:layout_centerHorizontal="true"
-                android:text="IN-Kirirom Mode"
+                android:text="Identifying..."
                 android:textAllCaps="false"
                 android:textSize="11dp"
                 android:textColor="@color/goldenrod"/>
@@ -231,7 +231,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:background="@drawable/profile_background"
-                android:padding="50sp"
+                android:padding="40sp"
                 android:src="@drawable/ic_user" />
 
             <TextView
@@ -247,6 +247,7 @@
                 android:layout_width="70dp"
                 android:layout_height="20dp"
                 android:text="FB Linked"
+                android:textColor="@color/colorWhite"
                 android:textAllCaps="false"
                 android:textSize="10dp"
                 android:background="@drawable/fb_link"
@@ -257,7 +258,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginTop="40dp">
+                android:layout_marginTop="10dp">
 
                 <Button
                     android:layout_width="match_parent"

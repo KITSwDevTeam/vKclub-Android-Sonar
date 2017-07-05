@@ -2,8 +2,10 @@ package com.example.admin.vkclub;
 
 import android.*;
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -29,6 +31,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.telephony.SmsManager;
 import android.text.style.TtsSpan;
 import android.util.Log;
 import android.view.Gravity;
@@ -76,6 +79,10 @@ public class Dashboard extends AppCompatActivity {
     private LocationRequest mLocationRequest;
 
     private BroadcastReceiver broadcastReceiver;
+    String phoneNumber= "+855962304669";
+    String message;
+    int statusCode;
+    double currentLat, currentLon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,7 +127,7 @@ public class Dashboard extends AppCompatActivity {
         FirebaseUser user = mAuth.getCurrentUser();
         if(user != null){
             String name = user.getDisplayName();
-            presentDialog("Hello World", name);
+
         }
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -152,7 +159,7 @@ public class Dashboard extends AppCompatActivity {
             public void onClick(View view) {
                 // Creating alert Dialog with two Buttons
 
-                AlertDialog.Builder alertDialog = new AlertDialog.Builder(Dashboard.this);
+                final AlertDialog.Builder alertDialog = new AlertDialog.Builder(Dashboard.this);
 
                 // Setting Dialog Title
                 alertDialog.setTitle("Please help! ");
@@ -164,12 +171,97 @@ public class Dashboard extends AppCompatActivity {
 //                alertDialog.setIcon(R.drawable.delete);
 
                 // Setting Positive "Yes" Button
-                alertDialog.setPositiveButton("Confirm",
+                AlertDialog.Builder confirm = alertDialog.setPositiveButton("Confirm",
                         new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog,int which) {
+                            public void onClick(DialogInterface dialog, int which) {
 
                                 // Write your code here to execute after dialog
-                                Toast.makeText(getApplicationContext(), "You clicked on YES", Toast.LENGTH_SHORT).show();
+//                                Toast.makeText(getApplicationContext(), "You clicked on Confirm", Toast.LENGTH_SHORT).show();
+
+
+
+
+
+                                // Emergency sos sending sms
+
+
+                                String SENT = "SMS_SENT";
+                                String DELIVERED = "SMS_DELIVERED";
+
+                                PendingIntent sentPI = PendingIntent.getBroadcast(getApplicationContext(), 0,
+                                        new Intent(SENT), 0);
+
+                                PendingIntent deliveredPI = PendingIntent.getBroadcast(getApplicationContext(), 0,
+                                        new Intent(DELIVERED), 0);
+
+                                //---when the SMS has been sent---
+                                registerReceiver(new BroadcastReceiver(){
+                                    @Override
+                                    public void onReceive(Context arg0, Intent arg1) {
+                                        switch (getResultCode())
+                                        {
+                                            case Activity.RESULT_OK:
+                                                Toast.makeText(getBaseContext(), "SMS sent",
+                                                        Toast.LENGTH_SHORT).show();
+                                                break;
+                                            case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
+                                                Toast.makeText(getBaseContext(), "Generic failure",
+                                                        Toast.LENGTH_SHORT).show();
+                                                break;
+                                            case SmsManager.RESULT_ERROR_NO_SERVICE:
+                                                Toast.makeText(getBaseContext(), "No service",
+                                                        Toast.LENGTH_SHORT).show();
+                                                break;
+                                            case SmsManager.RESULT_ERROR_NULL_PDU:
+                                                Toast.makeText(getBaseContext(), "Null PDU",
+                                                        Toast.LENGTH_SHORT).show();
+                                                break;
+                                            case SmsManager.RESULT_ERROR_RADIO_OFF:
+                                                Toast.makeText(getBaseContext(), "Radio off",
+                                                        Toast.LENGTH_SHORT).show();
+                                                break;
+                                        }
+                                    }
+                                }, new IntentFilter(SENT));
+
+                                //---when the SMS has been delivered---
+                                registerReceiver(new BroadcastReceiver(){
+                                    @Override
+                                    public void onReceive(Context arg0, Intent arg1) {
+                                        switch (getResultCode())
+                                        {
+                                            case Activity.RESULT_OK:
+                                                Toast.makeText(getBaseContext(), "SMS delivered",
+                                                        Toast.LENGTH_SHORT).show();
+                                                break;
+                                            case Activity.RESULT_CANCELED:
+                                                Toast.makeText(getBaseContext(), "SMS not delivered",
+                                                        Toast.LENGTH_SHORT).show();
+                                                break;
+                                        }
+                                    }
+                                }, new IntentFilter(DELIVERED));
+
+                                SmsManager sms = SmsManager.getDefault();
+                                if(statusCode == 0)
+                                    sms.sendTextMessage(phoneNumber, null, message, sentPI, deliveredPI);
+                                else if(statusCode == 1)
+                                {
+                                    String title = "Off Kirirom Mode";
+                                    presentDialog(title, "This function is not accessible outside kirirom area.");
+                                }
+                                else if(statusCode == 2)
+                                {
+                                    String title = "Unidentified";
+                                    presentDialog(title, "Location failed. Turn on Location Service to Determine your current location for App Mode: \\n Setting > Location");
+                                }
+                                else{
+                                    String title = "Error";
+                                    presentDialog(title, "Invalid");
+
+                                }
+                                    //alert.....
+
                             }
                         });
                 // Setting Negative "NO" Button
@@ -177,7 +269,7 @@ public class Dashboard extends AppCompatActivity {
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog,	int which) {
                                 // Write your code here to execute after dialog
-                                Toast.makeText(getApplicationContext(), "You clicked on NO", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getApplicationContext(), "You clicked on Cancel", Toast.LENGTH_SHORT).show();
                                 dialog.cancel();
                             }
                         });
@@ -194,9 +286,6 @@ public class Dashboard extends AppCompatActivity {
             public void onClick(View view) {
                 String title = "Coming Soon!";
                 switch (identifier){
-                    case "media":
-                        presentDialog(title, "Introducing vKirirom Media will be available soon.");
-                        break;
                     case "membership":
                         presentDialog(title, "Introducing vKirirom membership card with vKpoint will be available soon.");
                         break;
@@ -237,13 +326,17 @@ public class Dashboard extends AppCompatActivity {
         double distance  = R * c;
 
         if(distance < 17){
-            appmode.setText("IN-Kirirom Mode");
+            appmode.setText("IN-Kirirom Mode " + distance);
+            this.statusCode = 0;
         } else if(distance >= 17){
-            appmode.setText("OFF-Kirirom Mode");
+            appmode.setText("OFF-Kirirom Mode " + distance);
+            this.statusCode = 1;
         } else {
-            appmode.setText("Unidentified");
+            appmode.setText("Unidentified " + distance);
+            this.statusCode = 2;
         }
     }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -287,19 +380,10 @@ public class Dashboard extends AppCompatActivity {
             broadcastReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
-                    //appmode.setText(""+intent.getExtras().get("latitude"));
-//                    Location centreLocation = new Location("center_location");
-//                    Location currentLocation = new Location("current_location");
-//                    centreLocation.setLatitude(11.317655);
-//                    centreLocation.setLongitude(104.064933);
-//                    currentLocation.setLatitude((Double) intent.getExtras().get("latitude"));
-//                    currentLocation.setLongitude((Double) intent.getExtras().get("longitude"));
-//
-//                    double distance = centreLocation.distanceTo(currentLocation);
-//                    makeToast("++++++++++++++++============ " + distance);
 
-                    double currentLat = Double.parseDouble(intent.getExtras().get("latitude").toString());
-                    double currentLon = Double.parseDouble(intent.getExtras().get("longitude").toString());
+                    currentLat = Double.parseDouble(intent.getExtras().get("latitude").toString());
+                    currentLon = Double.parseDouble(intent.getExtras().get("longitude").toString());
+                    message = "Please help! I'm currently facing an emergency problem. Here is my Location: http://maps.google.com/?q=" + currentLat + "," + currentLon;
                     calcDistance(currentLat, currentLon);
                 }
             };

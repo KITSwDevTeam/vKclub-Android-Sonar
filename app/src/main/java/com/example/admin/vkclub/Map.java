@@ -96,7 +96,8 @@ public class Map extends AppCompatActivity implements OnMapReadyCallback,
 //                . tilt(30)                   // Sets the tilt of the camera to 30 degrees
                 .build();                   // Creates a CameraPosition from the builder
         map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-
+        //set maxzoom of the map
+        mMap.setMaxZoomPreference(17.0f);
         //Add GroundOverlay
 
 //        BitmapDescriptor bitmapDescriptor = BitmapDescriptorFactory.fromResource(R.drawable.map_s);
@@ -104,30 +105,12 @@ public class Map extends AppCompatActivity implements OnMapReadyCallback,
         LatLngBounds latlngBounds = new LatLngBounds(
                 new LatLng(11.3040, 104.0324),
                 new LatLng(11.3430, 104.0844));
-//                new LatLng(11.3044, 104.0322),
-//                new LatLng(11.3040, 104.0846));
-
-//        new LatLng LatLng(11.3432, 104.0323);
-//        new LatLng LatLng(11.3040, 104.0846))
-
-//        let southWest = CLLocationCoordinate2D(latitude: 11.3432, longitude:104.0323 )
-//        let northEast = CLLocationCoordinate2D(latitude: 11.3040, longitude: 104.0846)
-
-//        LatLngBounds latlngBounds = new LatLngBounds(southWest, northEast);
-
-//        GroundOverlayOptions groundOverlayOptions = new GroundOverlayOptions();
-//        groundOverlayOptions.positionFromBounds(latlngBounds);
-//        groundOverlayOptions.image(bitmapDescriptor);
-
 
         GroundOverlayOptions groundOverlayOptions = new GroundOverlayOptions()
                 .image(BitmapDescriptorFactory.fromResource(R.drawable.vkmap_1))
                 .positionFromBounds(latlngBounds);
 
-
         mMap.addGroundOverlay(groundOverlayOptions);
-        //Set max zoom 
-        mMap.setMaxZoomPreference(17.0f);
 
 
         //Add marker
@@ -315,40 +298,30 @@ public class Map extends AppCompatActivity implements OnMapReadyCallback,
 
         // Add button of the map
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
+
             return;
         }
         mMap.setMyLocationEnabled(true);
+//
+//        buildGoogleApiClient();
+//
+//        mGoogleApiClient.connect();
 
-        buildGoogleApiClient();
 
-        mGoogleApiClient.connect();
+
+
 
     }
 
-//    @Override
-//    public void onPause() {
-//        super.onPause();
-//        //Unregister for location callbacks:
-//        if (mGoogleApiClient != null) {
-//            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, (LocationListener) this);
-//        }
+
+//    protected synchronized void buildGoogleApiClient() {
+////        Toast.makeText(this, "buildGoogleApiClient", Toast.LENGTH_SHORT).show();
+//        mGoogleApiClient = new GoogleApiClient.Builder(this)
+//                .addConnectionCallbacks(this)
+//                .addOnConnectionFailedListener(this)
+//                .addApi(LocationServices.API)
+//                .build();
 //    }
-
-    protected synchronized void buildGoogleApiClient() {
-//        Toast.makeText(this, "buildGoogleApiClient", Toast.LENGTH_SHORT).show();
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
-    }
 
 
     @Override
@@ -365,43 +338,36 @@ public class Map extends AppCompatActivity implements OnMapReadyCallback,
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        Toast.makeText(this, "onConnected", Toast.LENGTH_SHORT).show();
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-                mGoogleApiClient);
-        if (mLastLocation != null) {
-            //place marker at current position
-            mMap.clear();
-            latLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-
-    }
+//        Toast.makeText(this, "onConnected", Toast.LENGTH_SHORT).show();
+//        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//            return;
+//        }
+//        Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+//                mGoogleApiClient);
+//        if (mLastLocation != null) {
+//            //place marker at current position
+//            mMap.clear();
+//            latLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+//
+//    }
 
 
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-        Toast.makeText(this,"onConnectionSuspended",Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this,"onConnectionSuspended",Toast.LENGTH_SHORT).show();
 
     }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        //remove previous current location marker and add new one at current position
-        if (mCurrLocation != null) {
-            mCurrLocation.remove();
-        }
-        Location location = null;
-        latLng = new LatLng(location.getLatitude(), location.getLongitude());
+//        //remove previous current location marker and add new one at current position
+//        if (mCurrLocation != null) {
+//            mCurrLocation.remove();
+//        }
+//        Location location = null;
+//        latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
 //        Toast.makeText(this,"Location Changed",Toast.LENGTH_SHORT).show();
 
