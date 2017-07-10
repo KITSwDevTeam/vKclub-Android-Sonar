@@ -14,12 +14,18 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
 import android.icu.text.DecimalFormat;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
@@ -27,6 +33,8 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -41,6 +49,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -53,7 +62,16 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserInfo;
+import com.squareup.picasso.Picasso;
 
+import org.w3c.dom.Text;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -65,6 +83,7 @@ import java.util.logging.Handler;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.MANAGE_DOCUMENTS;
+import static android.R.attr.bitmap;
 
 public class Dashboard extends AppCompatActivity {
 
@@ -74,13 +93,17 @@ public class Dashboard extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
     private Button logoutBtn, opendrawer, appmode, mapButton, membershipBtn;
+    private ImageView userPhoto;
+    private TextView userName, userEmail;
     private GoogleApiClient mGoogleApiClient;
     private Location mBestReading;
     private LocationRequest mLocationRequest;
+    private Bitmap mBitmap;
+    private Resources mResources;
 
     private BroadcastReceiver broadcastReceiver;
     String phoneNumber= "+855962304669";
-    String message;
+    String message, facebookUserId;
     int statusCode;
     double currentLat, currentLon;
 
@@ -91,7 +114,7 @@ public class Dashboard extends AppCompatActivity {
 
         appmode = (Button) findViewById(R.id.appMode);
         mapButton = (Button) findViewById(R.id.mapBtn);
-        membershipBtn = (Button) findViewById(R.id.membership);
+        membershipBtn = (Button) findViewById(R.id.membershipp);
 
         if(!runtime_permissions())
             start_gps_service();
@@ -126,9 +149,29 @@ public class Dashboard extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         FirebaseUser user = mAuth.getCurrentUser();
         if(user != null){
-            String name = user.getDisplayName();
+            userPhoto = (ImageView)findViewById(R.id.userprofile);
+            userName = (TextView)findViewById(R.id.username);
+            userEmail = (TextView)findViewById(R.id.useremail);
+            Uri photo = user.getPhotoUrl();
 
+            // find the Facebook profile and get the user's id
+            for(UserInfo profile : user.getProviderData()) {
+                // check if the provider id matches "facebook.com"
+                if(profile.getProviderId().equals("facebook.com")) {
+                    facebookUserId = profile.getUid();
+                }
+            }
+            String photoUrl = "https://graph.facebook.com/" + facebookUserId + "/picture?height=800";
+//            photoUrl.transform(new CropCircleTransform());
+//            new DownloadImageTask(userPhoto)
+//                    .execute(photoUrl);
+
+            new BitmapFromUrl(userPhoto).execute(photoUrl);
+            userName.setText(user.getDisplayName());
+            userEmail.setText(user.getEmail());
         }
+
+
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
@@ -260,7 +303,7 @@ public class Dashboard extends AppCompatActivity {
                                     presentDialog(title, "Invalid");
 
                                 }
-                                    //alert.....
+                                //alert.....
 
                             }
                         });
@@ -278,6 +321,42 @@ public class Dashboard extends AppCompatActivity {
                 alertDialog.show();
             }
         });
+    }
+
+    private RoundedBitmapDrawable createRoundedBitmapDrawableWithBorder(Bitmap mBitmap) {
+        int bitmapWidth = mBitmap.getWidth();
+        int bitmapHeight = mBitmap.getHeight();
+        int borderWidthHalf = 10;
+
+        int bitmapRadius = Math.min(bitmapWidth,bitmapHeight)/2;
+
+        int bitmapSquareWidth = Math.min(bitmapWidth,bitmapHeight);
+
+        int newBitmapSquareWidth = bitmapSquareWidth+borderWidthHalf;
+        Bitmap roundedBitmap = Bitmap.createBitmap(newBitmapSquareWidth,newBitmapSquareWidth,Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(roundedBitmap);
+        canvas.drawColor(Color.BLACK);
+
+        int x = borderWidthHalf + bitmapSquareWidth - bitmapWidth;
+        int y = borderWidthHalf + bitmapSquareWidth - bitmapHeight;
+
+        canvas.drawBitmap(mBitmap, x, y, null);
+
+        // Initializing a new Paint instance to draw circular border
+        Paint borderPaint = new Paint();
+        borderPaint.setStyle(Paint.Style.STROKE);
+        borderPaint.setStrokeWidth(borderWidthHalf*2);
+        borderPaint.setColor(Color.GREEN);
+
+        canvas.drawCircle(canvas.getWidth()/2, canvas.getWidth()/2, newBitmapSquareWidth/2, borderPaint);
+
+        RoundedBitmapDrawable roundedBitmapDrawable = RoundedBitmapDrawableFactory.create(mResources,roundedBitmap);
+        roundedBitmapDrawable.setCornerRadius(bitmapRadius);
+
+        roundedBitmapDrawable.setAntiAlias(true);
+
+        // Return the RoundedBitmapDrawable
+        return roundedBitmapDrawable;
     }
 
     private void upComingModule(Button btn, final String identifier){
