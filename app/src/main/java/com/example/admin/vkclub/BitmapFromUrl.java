@@ -9,6 +9,7 @@ import android.graphics.Paint;
 import android.os.AsyncTask;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
+import android.util.Log;
 import android.widget.ImageView;
 
 import java.io.IOException;
@@ -24,6 +25,7 @@ public class BitmapFromUrl extends AsyncTask<String, Void, Bitmap> {
 
     ImageView bmImage;
     private Resources mResources;
+    RoundedBitmapDrawable drawable;
 
     public BitmapFromUrl(ImageView bmImage) {
         this.bmImage = bmImage;
@@ -46,7 +48,8 @@ public class BitmapFromUrl extends AsyncTask<String, Void, Bitmap> {
     }
 
     protected void onPostExecute(Bitmap result) {
-        RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(result);
+        Log.d("+++++++++++++TAG++++++++++++", String.valueOf(result));
+        drawable = createRoundedBitmapDrawableWithBorder(result);
         bmImage.setImageDrawable(drawable);
     }
 

@@ -15,6 +15,7 @@ import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -27,6 +28,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -48,8 +50,10 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -60,6 +64,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.Dash;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserInfo;
@@ -67,12 +72,14 @@ import com.squareup.picasso.Picasso;
 
 import org.w3c.dom.Text;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Executors;
@@ -84,17 +91,23 @@ import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.MANAGE_DOCUMENTS;
 import static android.R.attr.bitmap;
+import static android.R.attr.viewportHeight;
+import static android.R.style.Theme_Black_NoTitleBar_Fullscreen;
 
 public class Dashboard extends AppCompatActivity {
 
+    private static final int RESULT_LOAD_IMAGE = 1;
+    private static final int RESULT_LOAD_IMG = 1;
+    private static final int REQUEST_IMAGE_CAPTURE = 1;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
 
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
-    private Button logoutBtn, opendrawer, appmode, mapButton, membershipBtn;
+    private Button logoutBtn, opendrawer, appmode, mapButton, membershipBtn, mProvider, mSetting;
     private ImageView userPhoto;
     private TextView userName, userEmail;
+    private ListView mList;
     private GoogleApiClient mGoogleApiClient;
     private Location mBestReading;
     private LocationRequest mLocationRequest;
@@ -103,7 +116,7 @@ public class Dashboard extends AppCompatActivity {
 
     private BroadcastReceiver broadcastReceiver;
     String phoneNumber= "+855962304669";
-    String message, facebookUserId;
+    String message, facebookUserId = "";
     int statusCode;
     double currentLat, currentLon;
 
@@ -147,29 +160,112 @@ public class Dashboard extends AppCompatActivity {
         }
 
         mAuth = FirebaseAuth.getInstance();
-        FirebaseUser user = mAuth.getCurrentUser();
+        final FirebaseUser user = mAuth.getCurrentUser();
+        Log.d("++++++++++++++TAG+++++++++++++", user.getProviderId());
         if(user != null){
             userPhoto = (ImageView)findViewById(R.id.userprofile);
             userName = (TextView)findViewById(R.id.username);
             userEmail = (TextView)findViewById(R.id.useremail);
-            Uri photo = user.getPhotoUrl();
 
             // find the Facebook profile and get the user's id
             for(UserInfo profile : user.getProviderData()) {
+                Log.v(">>>>>>>>>>>>>>>>>>>>>>>>>", profile.getProviderId());
+                presentDialog("Provider ID", profile.getProviderId());
+
                 // check if the provider id matches "facebook.com"
                 if(profile.getProviderId().equals("facebook.com")) {
+                    presentDialog("Provider ID", profile.getProviderId());
                     facebookUserId = profile.getUid();
+
+                    setProfilePic("https://graph.facebook.com/" + facebookUserId + "/picture?height=500");
+                } else if(profile.getProviderId().equals("password")){
+                    // if profile pic exist
+                    // setProfilePic("PhotoUrl from firebase");
+
                 }
             }
-            String photoUrl = "https://graph.facebook.com/" + facebookUserId + "/picture?height=800";
-//            photoUrl.transform(new CropCircleTransform());
-//            new DownloadImageTask(userPhoto)
-//                    .execute(photoUrl);
 
-            new BitmapFromUrl(userPhoto).execute(photoUrl);
+
             userName.setText(user.getDisplayName());
             userEmail.setText(user.getEmail());
         }
+
+
+
+        mProvider = (Button) findViewById(R.id.provider);
+        //show in button whether the user sign in with email or facebook
+        for(UserInfo profile : user.getProviderData()) {
+            // check if the provider id matches "facebook.com"
+            if(profile.getProviderId().equals("facebook.com")) {
+                mProvider.setText("FB Linked");
+            } else if(profile.getProviderId().equals("password")){
+                mProvider.setText("Edit");
+            }
+        }
+
+        mProvider.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                for(UserInfo profile : user.getProviderData()) {
+                    // check if the provider id matches "facebook.com"
+                    if(profile.getProviderId().equals("facebook.com")) {
+                        Toast.makeText(getApplicationContext(), "You are current linked your profile with facebook account", Toast.LENGTH_SHORT).show();
+
+                    } else {
+                        if (profile.getProviderId().equals("password")) {
+                                // getting image of the user from gallery
+                            userPhoto = (ImageView)findViewById(R.id.userprofile);
+                            userPhoto.setOnClickListener(new View.OnClickListener() {
+                                public void onClick(View view) {
+                                    //Intent myIntent = new Intent(view.getContext(), agones.class);
+                                    //startActivityForResult(myIntent, 0);
+
+                                    final List<String> listItems = new ArrayList<String>();
+                                    listItems.add("Take Photo");
+                                    listItems.add("Select from Photo Library");
+                                    listItems.add("Cancel");
+//                String[] listItems = { "Take Photo", "Select from Photo Library", "Cancel"};
+
+
+                                    //Create sequence of items
+                                    final CharSequence[] Animals = listItems.toArray(new String[listItems.size()]);
+                                    AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(Dashboard.this);
+                                    dialogBuilder.setTitle("Upload Profile Picture");
+                                    dialogBuilder.setItems(Animals, new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int item) {
+                                            String selectedText = Animals[item].toString();  //Selected item in listview
+                                            if(selectedText.equals("Take Photo"))
+                                            {
+                                                dispatchTakePictureIntent();
+//                            presentDialog("Choose Camera", "Success");
+                                            }
+                                            else if(selectedText.equals("Select from Photo Library")){
+                                                getImageFromAlbum();
+                                            }
+                                        }
+                                    });
+                                    //Create alert dialog object via builder
+                                    AlertDialog alertDialogObject = dialogBuilder.create();
+                                    //Show the dialog
+                                    alertDialogObject.show();
+
+
+
+                                }
+                            });
+                        Toast.makeText(getApplicationContext(), "You are current using email sign in ", Toast.LENGTH_SHORT).show();
+//                        Intent intent = new Intent(Dashboard.this, Dashboard.class);
+//                        startActivity(intent);
+//                            finish();
+//                            Dialog dialog=new Dialog(this, Theme_Black_NoTitleBar_Fullscreen);
+//                            dialog.setContentView(R.layout.edit);
+//                            dialog.show();
+
+                        }
+                    }
+                }
+            }
+        });
 
 
         mAuthListener = new FirebaseAuth.AuthStateListener() {
@@ -194,6 +290,11 @@ public class Dashboard extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+
+            //
+        mSetting = (Button)findViewById(R.id.setting);
+
 
         //Alert button sos
         Button sos = (Button) findViewById(R.id.sos);
@@ -323,40 +424,24 @@ public class Dashboard extends AppCompatActivity {
         });
     }
 
-    private RoundedBitmapDrawable createRoundedBitmapDrawableWithBorder(Bitmap mBitmap) {
-        int bitmapWidth = mBitmap.getWidth();
-        int bitmapHeight = mBitmap.getHeight();
-        int borderWidthHalf = 10;
+    private void setProfilePic(String photoUrl){
+        new BitmapFromUrl(userPhoto).execute(photoUrl);
+    }
 
-        int bitmapRadius = Math.min(bitmapWidth,bitmapHeight)/2;
+    //get image from gallery
+    private void getImageFromAlbum(){
+        Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
+        photoPickerIntent.setType("image/*");
+        startActivityForResult(photoPickerIntent, RESULT_LOAD_IMG);
 
-        int bitmapSquareWidth = Math.min(bitmapWidth,bitmapHeight);
+    }
 
-        int newBitmapSquareWidth = bitmapSquareWidth+borderWidthHalf;
-        Bitmap roundedBitmap = Bitmap.createBitmap(newBitmapSquareWidth,newBitmapSquareWidth,Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(roundedBitmap);
-        canvas.drawColor(Color.BLACK);
-
-        int x = borderWidthHalf + bitmapSquareWidth - bitmapWidth;
-        int y = borderWidthHalf + bitmapSquareWidth - bitmapHeight;
-
-        canvas.drawBitmap(mBitmap, x, y, null);
-
-        // Initializing a new Paint instance to draw circular border
-        Paint borderPaint = new Paint();
-        borderPaint.setStyle(Paint.Style.STROKE);
-        borderPaint.setStrokeWidth(borderWidthHalf*2);
-        borderPaint.setColor(Color.GREEN);
-
-        canvas.drawCircle(canvas.getWidth()/2, canvas.getWidth()/2, newBitmapSquareWidth/2, borderPaint);
-
-        RoundedBitmapDrawable roundedBitmapDrawable = RoundedBitmapDrawableFactory.create(mResources,roundedBitmap);
-        roundedBitmapDrawable.setCornerRadius(bitmapRadius);
-
-        roundedBitmapDrawable.setAntiAlias(true);
-
-        // Return the RoundedBitmapDrawable
-        return roundedBitmapDrawable;
+    //get camera
+    private void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        }
     }
 
     private void upComingModule(Button btn, final String identifier){
@@ -524,5 +609,22 @@ public class Dashboard extends AppCompatActivity {
 
         AlertDialog alert = builder.create();
         alert.show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        presentDialog("onActivity Result", "Hello"+String.valueOf(resultCode)+String.valueOf(RESULT_OK));
+        if (requestCode == RESULT_LOAD_IMAGE && resultCode == RESULT_OK && null != data) {
+            try {
+                final Uri imageUri = data.getData();
+                final InputStream imageStream = getContentResolver().openInputStream(imageUri);
+                final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
+                userPhoto.setImageBitmap(selectedImage);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                Toast.makeText(Dashboard.this, "Something went wrong", Toast.LENGTH_LONG).show();
+            }
+        }
     }
 }

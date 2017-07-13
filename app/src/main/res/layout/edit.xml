@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_horizontal"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:background="@color/colorBackground"
+    tools:context="com.example.admin.vkclub.LoginActivity">
+
+
+    <android.support.v7.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp">
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/border_bottom"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:hint="Name"
+            android:textColor="@color/colorWhite"
+            android:textColorHint="@color/colorWhite"
+            android:maxLines="1"
+            android:maxLength="100"
+            android:inputType="textPersonName"
+            android:id="@+id/name1"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:textSize="10dp"
+            android:textColor="@color/colorRed"
+            android:textStyle="italic"
+            android:id="@+id/nameValidation1"/>
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/border_bottom"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:hint="Email"
+            android:textColor="@color/colorWhite"
+            android:textColorHint="@color/colorWhite"
+            android:maxLines="1"
+            android:maxLength="100"
+            android:inputType="textEmailAddress"
+            android:id="@+id/email1"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:textSize="10dp"
+            android:textColor="@color/colorRed"
+            android:textStyle="italic"
+            android:id="@+id/emailValidation1"/>
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/border_bottom"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:hint="Password"
+            android:textColor="@color/colorWhite"
+            android:textColorHint="@color/colorWhite"
+            android:maxLines="1"
+            android:maxLength="20"
+            android:inputType="textPassword"
+            android:id="@+id/pass1"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:textSize="10dp"
+            android:textColor="@color/colorRed"
+            android:textStyle="italic"
+            android:id="@+id/passValidation1"/>
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/transparent_btn"
+            android:text="Update"
+            android:textAllCaps="false"
+            android:textColor="@color/colorWhite"
+            android:textSize="20dp"
+            android:layout_marginTop="10dp"
+            android:id="@+id/signup1"/>
+
+        <ProgressBar
+            android:id="@+id/progressBar1"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="50dp"
+            android:layout_height="31dp"
+            android:layout_centerHorizontal="true"
+            android:layout_gravity="center"
+            android:layout_marginTop="10dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="italic"
+            android:layout_marginTop="5dp"
+            android:textColor="@color/colorWhite"
+            android:layout_gravity="center"
+            android:id="@+id/status1"/>
+    </android.support.v7.widget.LinearLayoutCompat>
+
+</LinearLayout>
