@@ -289,7 +289,7 @@
                 <Button
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
-                    android:text="Contact"
+                    android:text="Contact us"
                     android:id="@+id/contact"
                     android:layout_gravity="center"
                     android:background="@drawable/sidebar_module"

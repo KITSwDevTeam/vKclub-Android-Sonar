@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="10dp"
+    android:paddingRight="10dp">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:text="Edit Profile"
+        app:titleTextColor="@color/colorWhite"
+        android:background="@color/colorBackground"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        />
+    <!--<TextView-->
+        <!--android:id="@+id/text1"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="Edit Profile"-->
+        <!--android:layout_marginBottom="30sp"-->
+        <!--android:layout_gravity="center"-->
+        <!--android:textSize="25sp"-->
+        <!--android:textStyle="bold"-->
+        <!--/>-->
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/colorWhite"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:hint="Name"
+            android:textColor="@color/colorBackground"
+            android:textColorHint="@color/colorBackground"
+            android:maxLines="1"
+            android:maxLength="100"
+            android:inputType="textPersonName"
+            android:id="@+id/name1"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:textSize="10dp"
+            android:textColor="@color/colorRed"
+            android:textStyle="italic"
+            android:id="@+id/nameValidation"/>
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/colorWhite"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:hint="Email"
+            android:textColor="@color/colorBackground"
+            android:textColorHint="@color/colorBackground"
+            android:maxLines="1"
+            android:maxLength="100"
+            android:inputType="textEmailAddress"
+            android:id="@+id/email1"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:textSize="10dp"
+            android:textColor="@color/colorRed"
+            android:textStyle="italic"
+            android:id="@+id/emailValidation"/>
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/colorWhite"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:hint="Confirm Password"
+            android:textColor="@color/colorBackground"
+            android:textColorHint="@color/colorBackground"
+            android:maxLines="1"
+            android:maxLength="20"
+            android:inputType="textPassword"
+            android:id="@+id/confirmpass1"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:textSize="10dp"
+            android:textColor="@color/colorRed"
+            android:textStyle="italic"
+            android:id="@+id/confirmpassValidation"/>
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/colorBackground"
+            android:text="Update Profile"
+            android:textAllCaps="false"
+            android:textColor="@color/colorWhite"
+            android:textSize="20dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="20sp"
+            android:id="@+id/updateprofile"/>
+
+</LinearLayout>

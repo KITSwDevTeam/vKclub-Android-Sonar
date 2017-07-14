@@ -26,8 +26,10 @@ import android.icu.text.DecimalFormat;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
@@ -41,6 +43,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.telephony.SmsManager;
 import android.text.style.TtsSpan;
 import android.util.Log;
@@ -72,13 +75,17 @@ import com.squareup.picasso.Picasso;
 
 import org.w3c.dom.Text;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -99,12 +106,16 @@ public class Dashboard extends AppCompatActivity {
     private static final int RESULT_LOAD_IMAGE = 1;
     private static final int RESULT_LOAD_IMG = 1;
     private static final int REQUEST_IMAGE_CAPTURE = 1;
+    private static final int CAMERA_REQUEST = 1888;
+    private static final int CAMERA = 1;
+    private static final Object IMAGE_DIRECTORY = 1;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
 
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
-    private Button logoutBtn, opendrawer, appmode, mapButton, membershipBtn, mProvider, mSetting;
+    private Button logoutBtn, opendrawer, appmode, mapButton, membershipBtn, mProvider, mContact, mUpdateprofile, mSetting;
+    private EditText mName, mEmail, mCurrentpass;
     private ImageView userPhoto;
     private TextView userName, userEmail;
     private ListView mList;
@@ -113,6 +124,7 @@ public class Dashboard extends AppCompatActivity {
     private LocationRequest mLocationRequest;
     private Bitmap mBitmap;
     private Resources mResources;
+    private Toolbar mToolbar;
 
     private BroadcastReceiver broadcastReceiver;
     String phoneNumber= "+855962304669";
@@ -124,6 +136,7 @@ public class Dashboard extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
+
 
         appmode = (Button) findViewById(R.id.appMode);
         mapButton = (Button) findViewById(R.id.mapBtn);
@@ -170,11 +183,11 @@ public class Dashboard extends AppCompatActivity {
             // find the Facebook profile and get the user's id
             for(UserInfo profile : user.getProviderData()) {
                 Log.v(">>>>>>>>>>>>>>>>>>>>>>>>>", profile.getProviderId());
-                presentDialog("Provider ID", profile.getProviderId());
+//                presentDialog("Provider ID", profile.getProviderId());
 
                 // check if the provider id matches "facebook.com"
                 if(profile.getProviderId().equals("facebook.com")) {
-                    presentDialog("Provider ID", profile.getProviderId());
+//                    presentDialog("Provider ID", profile.getProviderId());
                     facebookUserId = profile.getUid();
 
                     setProfilePic("https://graph.facebook.com/" + facebookUserId + "/picture?height=500");
@@ -193,6 +206,11 @@ public class Dashboard extends AppCompatActivity {
 
         userPhoto = (ImageView)findViewById(R.id.userprofile);
         mProvider = (Button) findViewById(R.id.provider);
+        mName = (EditText) findViewById(R.id.name1);
+        mEmail = (EditText) findViewById(R.id.email1);
+        mCurrentpass = (EditText) findViewById(R.id.confirmpass1);
+        mUpdateprofile = (Button) findViewById(R.id.updateprofile);
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
 //        //show in button whether the user sign in with email or facebook
 //        for(UserInfo profile : user.getProviderData()) {
 //            // check if the provider id matches "facebook.com"
@@ -226,6 +244,13 @@ public class Dashboard extends AppCompatActivity {
 //                            Dialog dialog=new Dialog(Dashboard.this,android.R.style.Theme_Black_NoTitleBar_Fullscreen);
 //                            dialog.setContentView(R.layout.activity_create_account);
 //                            dialog.show();
+//                            mToolbar.setTitle("Edit Profile");
+                            AlertDialog.Builder mBuilder = new AlertDialog.Builder(Dashboard.this);
+                            View mView = getLayoutInflater().inflate(R.layout.edit_info, null);
+                            mBuilder.setView(mView);
+                            AlertDialog dialog = mBuilder.create();
+                            dialog.show();
+
                         }
                     });
 
@@ -234,8 +259,6 @@ public class Dashboard extends AppCompatActivity {
                 }
             }
         }
-
-
 
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -260,9 +283,48 @@ public class Dashboard extends AppCompatActivity {
             }
         });
 
-
-        //
+        //setting
         mSetting = (Button)findViewById(R.id.setting);
+        mSetting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                AlertDialog.Builder mBuilder = new AlertDialog.Builder(Dashboard.this);
+                View mView = getLayoutInflater().inflate(R.layout.setting, null);
+                mBuilder.setView(mView);
+                AlertDialog dialog = mBuilder.create();
+                dialog.show();
+            }
+        });
+
+
+        //contact
+        mContact = (Button)findViewById(R.id.contact);
+        mContact.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final List<String> listItems = new ArrayList<String>();
+                listItems.add("Reception(+855 78 777 284)");
+                listItems.add("Reception(+855 96 2222 735)");
+                listItems.add("Cancel");
+//                String[] listItems = { "Take Photo", "Select from Photo Library", "Cancel"};
+
+
+                //Create sequence of items
+                final CharSequence[] Animals = listItems.toArray(new String[listItems.size()]);
+                AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(Dashboard.this);
+                dialogBuilder.setTitle("Contact");
+                dialogBuilder.setItems(Animals, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int item) {
+                        String selectedText = Animals[item].toString();  //Selected item in listview
+
+                    }
+                });
+                //Create alert dialog object via builder
+                AlertDialog alertDialogObject = dialogBuilder.create();
+                //Show the dialog
+                alertDialogObject.show();
+            }
+        });
 
 
         //Alert button sos
@@ -451,10 +513,15 @@ public class Dashboard extends AppCompatActivity {
 
     //get camera
     private void dispatchTakePictureIntent() {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-        }
+//        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+////        startActivityForResult(takePictureIntent, CAMERA_REQUEST);
+//        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+//            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+//
+//        }
+
+        Intent intent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        startActivityForResult(intent, CAMERA);
     }
 
     private void upComingModule(Button btn, final String identifier){
@@ -627,7 +694,7 @@ public class Dashboard extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        presentDialog("onActivity Result", "Hello"+String.valueOf(resultCode)+String.valueOf(RESULT_OK));
+//        presentDialog("onActivity Result", "Hello"+String.valueOf(resultCode)+String.valueOf(RESULT_OK));
         if (requestCode == RESULT_LOAD_IMAGE && resultCode == RESULT_OK && null != data) {
             try {
                 final Uri imageUri = data.getData();
@@ -639,5 +706,49 @@ public class Dashboard extends AppCompatActivity {
                 Toast.makeText(Dashboard.this, "Something went wrong", Toast.LENGTH_LONG).show();
             }
         }
+//        else if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+//            Bundle extras = data.getExtras();
+//            Bitmap imageBitmap = (Bitmap) extras.get("data");
+//            userPhoto.setImageBitmap(imageBitmap);
+//        }
+        else if (requestCode == CAMERA) {
+            Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
+            userPhoto.setImageBitmap(thumbnail);
+//            saveImage(thumbnail);
+            Toast.makeText(Dashboard.this, "Image Saved!", Toast.LENGTH_SHORT).show();
+        }
+//        else if (requestCode ==  CAMERA_REQUEST && resultCode == RESULT_OK) {
+//            Bitmap mphoto = (Bitmap) data.getExtras().get("data");
+//            userPhoto.setImageBitmap(mphoto);
+//        }
     }
-}
+
+//    private String saveImage(Bitmap myBitmap) {
+//        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+//        myBitmap.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
+//        File wallpaperDirectory = new File(
+//                Environment.getExternalStorageDirectory() + IMAGE_DIRECTORY);
+//        // have the object build the directory structure, if needed.
+//        if (!wallpaperDirectory.exists()) {
+//            wallpaperDirectory.mkdirs();
+//        }
+//
+//        try {
+//            File f = new File(wallpaperDirectory, Calendar.getInstance()
+//                    .getTimeInMillis() + ".jpg");
+//            f.createNewFile();
+//            FileOutputStream fo = new FileOutputStream(f);
+//            fo.write(bytes.toByteArray());
+//            MediaScannerConnection.scanFile(this,
+//                    new String[]{f.getPath()},
+//                    new String[]{"image/jpeg"}, null);
+//            fo.close();
+//            Log.d("TAG", "File Saved::--->" + f.getAbsolutePath());
+//
+//            return f.getAbsolutePath();
+//        } catch (IOException e1) {
+//            e1.printStackTrace();
+//        }
+//        return "";
+//    }
+    }
