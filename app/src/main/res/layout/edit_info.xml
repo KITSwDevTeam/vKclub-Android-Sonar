@@ -4,30 +4,29 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingLeft="10dp"
-    android:paddingRight="10dp">
+    android:paddingLeft="10sp"
+    android:paddingRight="10sp"
+    >
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:text="Edit Profile"
-        app:titleTextColor="@color/colorWhite"
-        android:background="@color/colorBackground"
-        android:minHeight="?attr/actionBarSize"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-        />
-    <!--<TextView-->
-        <!--android:id="@+id/text1"-->
-        <!--android:layout_width="wrap_content"-->
+    <!--<android.support.v7.widget.Toolbar-->
+        <!--android:id="@+id/toolbar"-->
+        <!--android:layout_width="match_parent"-->
         <!--android:layout_height="wrap_content"-->
-        <!--android:text="Edit Profile"-->
-        <!--android:layout_marginBottom="30sp"-->
-        <!--android:layout_gravity="center"-->
-        <!--android:textSize="25sp"-->
-        <!--android:textStyle="bold"-->
-        <!--/>-->
+        <!--android:layout_alignParentTop="true"-->
+        <!--android:background="?attr/colorPrimary"-->
+        <!--android:minHeight="?attr/actionBarSize"-->
+        <!--android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"-->
+        <!--app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>-->
+    <TextView
+        android:id="@+id/text1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Edit Profile"
+        android:layout_marginBottom="30sp"
+        android:layout_gravity="center"
+        android:textSize="25sp"
+        android:textStyle="bold"
+        />
 
         <EditText
             android:layout_width="match_parent"
@@ -108,6 +107,8 @@
             android:textSize="20dp"
             android:layout_marginTop="10dp"
             android:layout_marginBottom="20sp"
+            android:layout_marginLeft="10sp"
+            android:layout_marginRight="10sp"
             android:id="@+id/updateprofile"/>
 
 </LinearLayout>

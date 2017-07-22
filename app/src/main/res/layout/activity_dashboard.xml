@@ -226,7 +226,7 @@
 
             <!--Place your ImageView here-->
             <ImageView
-                android:id="@+id/userprofile"
+                android:id="@+id/userphoto"
                 android:layout_width="100sp"
                 android:layout_height="100sp"
                 android:layout_gravity="center_horizontal"

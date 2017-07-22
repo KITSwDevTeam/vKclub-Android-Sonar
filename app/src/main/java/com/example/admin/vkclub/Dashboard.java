@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -14,6 +15,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -36,7 +38,10 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.Loader;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.support.v4.widget.DrawerLayout;
@@ -68,9 +73,18 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.Dash;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserInfo;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
+import com.google.firebase.storage.StorageMetadata;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.StorageTask;
+import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 
 import org.w3c.dom.Text;
@@ -84,9 +98,12 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Executors;
@@ -96,41 +113,41 @@ import java.util.logging.Handler;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
+import static android.Manifest.permission.INTERNET;
 import static android.Manifest.permission.MANAGE_DOCUMENTS;
 import static android.R.attr.bitmap;
+import static android.R.attr.data;
 import static android.R.attr.viewportHeight;
 import static android.R.style.Theme_Black_NoTitleBar_Fullscreen;
+import static com.example.admin.vkclub.R.id.name;
 
 public class Dashboard extends AppCompatActivity {
 
-    private static final int RESULT_LOAD_IMAGE = 1;
-    private static final int RESULT_LOAD_IMG = 1;
-    private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int CAMERA_REQUEST = 1888;
-    private static final int CAMERA = 1;
-    private static final Object IMAGE_DIRECTORY = 1;
+    private static final int PICK_IMAGE_REQUEST = 234;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
-
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
-    private Button logoutBtn, opendrawer, appmode, mapButton, membershipBtn, mProvider, mContact, mUpdateprofile, mSetting;
+    private Button logoutBtn, opendrawer, appmode, mapButton, membershipBtn, mProvider, mContact, mUpdateprofile, mSetting,mNotification;
     private EditText mName, mEmail, mCurrentpass;
     private ImageView userPhoto;
     private TextView userName, userEmail;
-    private ListView mList;
     private GoogleApiClient mGoogleApiClient;
     private Location mBestReading;
     private LocationRequest mLocationRequest;
-    private Bitmap mBitmap;
     private Resources mResources;
-    private Toolbar mToolbar;
+    Uri uri;
+
+
 
     private BroadcastReceiver broadcastReceiver;
     String phoneNumber= "+855962304669";
     String message, facebookUserId = "";
     int statusCode;
     double currentLat, currentLon;
+    FirebaseUser user;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -138,9 +155,23 @@ public class Dashboard extends AppCompatActivity {
         setContentView(R.layout.activity_dashboard);
 
 
+
         appmode = (Button) findViewById(R.id.appMode);
         mapButton = (Button) findViewById(R.id.mapBtn);
         membershipBtn = (Button) findViewById(R.id.membershipp);
+        mName = (EditText) findViewById(R.id.name1);
+        mEmail = (EditText) findViewById(R.id.email1);
+        mCurrentpass = (EditText) findViewById(R.id.confirmpass1);
+        userPhoto = (ImageView)findViewById(R.id.userphoto);
+        userName = (TextView)findViewById(R.id.username);
+        userEmail = (TextView)findViewById(R.id.useremail);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
+        opendrawer = (Button) findViewById(R.id.openDrawer);
+        mProvider = (Button) findViewById(R.id.provider);
+        logoutBtn = (Button) findViewById(R.id.logout);
+        mSetting = (Button)findViewById(R.id.setting);
+        mContact = (Button)findViewById(R.id.contact);
+        mNotification = (Button) findViewById(R.id.openNotification);
 
         if(!runtime_permissions())
             start_gps_service();
@@ -151,12 +182,9 @@ public class Dashboard extends AppCompatActivity {
         // call navigate
         navigateScreen(mapButton, Map.class);
 
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
         mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.open, R.string.close);
         mDrawerLayout.addDrawerListener(mToggle);
         mToggle.syncState();
-
-        opendrawer = (Button) findViewById(R.id.openDrawer);
 
         opendrawer.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -173,12 +201,10 @@ public class Dashboard extends AppCompatActivity {
         }
 
         mAuth = FirebaseAuth.getInstance();
-        final FirebaseUser user = mAuth.getCurrentUser();
+        user = mAuth.getCurrentUser();
         Log.d("++++++++++++++TAG+++++++++++++", user.getProviderId());
         if(user != null){
-            userPhoto = (ImageView)findViewById(R.id.userprofile);
-            userName = (TextView)findViewById(R.id.username);
-            userEmail = (TextView)findViewById(R.id.useremail);
+
 
             // find the Facebook profile and get the user's id
             for(UserInfo profile : user.getProviderData()) {
@@ -192,36 +218,15 @@ public class Dashboard extends AppCompatActivity {
 
                     setProfilePic("https://graph.facebook.com/" + facebookUserId + "/picture?height=500");
                 } else if(profile.getProviderId().equals("password")){
-                    // if profile pic exist
-                    // setProfilePic("PhotoUrl from firebase");
 
                 }
             }
-
 
             userName.setText(user.getDisplayName());
             userEmail.setText(user.getEmail());
         }
 
-
-        userPhoto = (ImageView)findViewById(R.id.userprofile);
-        mProvider = (Button) findViewById(R.id.provider);
-        mName = (EditText) findViewById(R.id.name1);
-        mEmail = (EditText) findViewById(R.id.email1);
-        mCurrentpass = (EditText) findViewById(R.id.confirmpass1);
-        mUpdateprofile = (Button) findViewById(R.id.updateprofile);
-        mToolbar = (Toolbar) findViewById(R.id.toolbar);
-//        //show in button whether the user sign in with email or facebook
-//        for(UserInfo profile : user.getProviderData()) {
-//            // check if the provider id matches "facebook.com"
-//            if(profile.getProviderId().equals("facebook.com")) {
-//                mProvider.setText("FB Linked");
-//            } else if(profile.getProviderId().equals("password")){
-//                mProvider.setText("Edit");
-//            }
-//        }
-
-
+//  sign in option whether the user login with fb or email
         for(UserInfo profile : user.getProviderData()) {
             // check if the provider id matches "facebook.com"
             if(profile.getProviderId().equals("facebook.com")) {
@@ -240,22 +245,44 @@ public class Dashboard extends AppCompatActivity {
                     mProvider.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            //dialog full screen
-//                            Dialog dialog=new Dialog(Dashboard.this,android.R.style.Theme_Black_NoTitleBar_Fullscreen);
-//                            dialog.setContentView(R.layout.activity_create_account);
-//                            dialog.show();
-//                            mToolbar.setTitle("Edit Profile");
                             AlertDialog.Builder mBuilder = new AlertDialog.Builder(Dashboard.this);
                             View mView = getLayoutInflater().inflate(R.layout.edit_info, null);
                             mBuilder.setView(mView);
                             AlertDialog dialog = mBuilder.create();
                             dialog.show();
+                        }
+                    });
+                    userPhoto.setOnClickListener(new View.OnClickListener() {
+                        public void onClick(View view) {
+
+                            final List<String> listItems = new ArrayList<String>();
+                            listItems.add("Take Photo");
+                            listItems.add("Select from Photo Library");
+                            listItems.add("Cancel");
+
+                            final CharSequence[] Animals = listItems.toArray(new String[listItems.size()]);
+                            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(Dashboard.this);
+                            dialogBuilder.setTitle("Upload Profile Picture");
+                            dialogBuilder.setItems(Animals, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int item) {
+                                    String selectedText = Animals[item].toString();  //Selected item in listview
+                                    if(selectedText.equals("Take Photo"))
+                                    {
+                                        dispatchTakePictureIntent();
+                                    }
+                                    else if(selectedText.equals("Select from Photo Library"))
+                                    {
+                                        getImageFromAlbum();
+                                    }
+                                }
+                            });
+                            //Create alert dialog object via builder
+                            AlertDialog alertDialogObject = dialogBuilder.create();
+                            //Show the dialog
+                            alertDialogObject.show();
 
                         }
                     });
-
-                    selectprofile();
-
                 }
             }
         }
@@ -272,7 +299,16 @@ public class Dashboard extends AppCompatActivity {
             }
         };
 
-        logoutBtn = (Button) findViewById(R.id.logout);
+
+        //Show notification
+        mNotification.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showDialog();
+            }
+        });
+
+        // Logout
         logoutBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -284,7 +320,6 @@ public class Dashboard extends AppCompatActivity {
         });
 
         //setting
-        mSetting = (Button)findViewById(R.id.setting);
         mSetting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -298,7 +333,6 @@ public class Dashboard extends AppCompatActivity {
 
 
         //contact
-        mContact = (Button)findViewById(R.id.contact);
         mContact.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -316,7 +350,25 @@ public class Dashboard extends AppCompatActivity {
                 dialogBuilder.setItems(Animals, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int item) {
                         String selectedText = Animals[item].toString();  //Selected item in listview
+                        if(selectedText.equals("Reception(+855 78 777 284)")){
+                            Intent callIntent = new Intent(Intent.ACTION_CALL);
+                            callIntent.setData(Uri.parse("tel:0963377810"));
 
+                            if (ActivityCompat.checkSelfPermission(Dashboard.this,
+                                    Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                                return;
+                            }
+                            startActivity(callIntent);
+                        }else if(selectedText.equals("Reception(+855 96 2222 735)")) {
+                            Intent callIntent = new Intent(Intent.ACTION_CALL);
+                            callIntent.setData(Uri.parse("tel:0963377810"));
+
+                            if (ActivityCompat.checkSelfPermission(Dashboard.this,
+                                    Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                                return;
+                            }
+                            startActivity(callIntent);
+                        }
                     }
                 });
                 //Create alert dialog object via builder
@@ -325,7 +377,6 @@ public class Dashboard extends AppCompatActivity {
                 alertDialogObject.show();
             }
         });
-
 
         //Alert button sos
         Button sos = (Button) findViewById(R.id.sos);
@@ -349,17 +400,9 @@ public class Dashboard extends AppCompatActivity {
                 AlertDialog.Builder confirm = alertDialog.setPositiveButton("Confirm",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
-
                                 // Write your code here to execute after dialog
 //                                Toast.makeText(getApplicationContext(), "You clicked on Confirm", Toast.LENGTH_SHORT).show();
-
-
-
-
-
                                 // Emergency sos sending sms
-
-
                                 String SENT = "SMS_SENT";
                                 String DELIVERED = "SMS_DELIVERED";
 
@@ -435,8 +478,6 @@ public class Dashboard extends AppCompatActivity {
                                     presentDialog(title, "Invalid");
 
                                 }
-                                //alert.....
-
                             }
                         });
                 // Setting Negative "NO" Button
@@ -448,53 +489,8 @@ public class Dashboard extends AppCompatActivity {
                                 dialog.cancel();
                             }
                         });
-
                 // Showing Alert Message
                 alertDialog.show();
-            }
-        });
-    }
-
-    private void selectprofile() {
-
-        // getting image of the user from gallery
-
-        userPhoto.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                //Intent myIntent = new Intent(view.getContext(), agones.class);
-                //startActivityForResult(myIntent, 0);
-
-                final List<String> listItems = new ArrayList<String>();
-                listItems.add("Take Photo");
-                listItems.add("Select from Photo Library");
-                listItems.add("Cancel");
-//                String[] listItems = { "Take Photo", "Select from Photo Library", "Cancel"};
-
-
-                //Create sequence of items
-                final CharSequence[] Animals = listItems.toArray(new String[listItems.size()]);
-                AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(Dashboard.this);
-                dialogBuilder.setTitle("Upload Profile Picture");
-                dialogBuilder.setItems(Animals, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int item) {
-                        String selectedText = Animals[item].toString();  //Selected item in listview
-                        if(selectedText.equals("Take Photo"))
-                        {
-                            dispatchTakePictureIntent();
-//                            presentDialog("Choose Camera", "Success");
-                        }
-                        else if(selectedText.equals("Select from Photo Library")){
-                            getImageFromAlbum();
-                        }
-                    }
-                });
-                //Create alert dialog object via builder
-                AlertDialog alertDialogObject = dialogBuilder.create();
-                //Show the dialog
-                alertDialogObject.show();
-
-
-
             }
         });
     }
@@ -503,25 +499,18 @@ public class Dashboard extends AppCompatActivity {
         new BitmapFromUrl(userPhoto).execute(photoUrl);
     }
 
-    //get image from gallery
-    private void getImageFromAlbum(){
-        Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
-        photoPickerIntent.setType("image/*");
-        startActivityForResult(photoPickerIntent, RESULT_LOAD_IMG);
-
+//    get camera
+    private void dispatchTakePictureIntent() {
+        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        startActivityForResult(cameraIntent, CAMERA_REQUEST);
     }
 
-    //get camera
-    private void dispatchTakePictureIntent() {
-//        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-////        startActivityForResult(takePictureIntent, CAMERA_REQUEST);
-//        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-//            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-//
-//        }
-
-        Intent intent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-        startActivityForResult(intent, CAMERA);
+    //get image from gallery
+    private void getImageFromAlbum(){
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_PICK);
+        startActivityForResult(Intent.createChooser(intent, "Select Image"), PICK_IMAGE_REQUEST);
     }
 
     private void upComingModule(Button btn, final String identifier){
@@ -694,61 +683,113 @@ public class Dashboard extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-//        presentDialog("onActivity Result", "Hello"+String.valueOf(resultCode)+String.valueOf(RESULT_OK));
-        if (requestCode == RESULT_LOAD_IMAGE && resultCode == RESULT_OK && null != data) {
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            uri = data.getData();
+            Bitmap bitmap = null;
             try {
-                final Uri imageUri = data.getData();
-                final InputStream imageStream = getContentResolver().openInputStream(imageUri);
-                final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
-                userPhoto.setImageBitmap(selectedImage);
-            } catch (FileNotFoundException e) {
+                bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+                RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(bitmap);
+                userPhoto.setImageDrawable(drawable);
+
+            } catch (IOException e) {
                 e.printStackTrace();
-                Toast.makeText(Dashboard.this, "Something went wrong", Toast.LENGTH_LONG).show();
             }
         }
-//        else if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-//            Bundle extras = data.getExtras();
-//            Bitmap imageBitmap = (Bitmap) extras.get("data");
-//            userPhoto.setImageBitmap(imageBitmap);
-//        }
-        else if (requestCode == CAMERA) {
-            Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
-            userPhoto.setImageBitmap(thumbnail);
-//            saveImage(thumbnail);
-            Toast.makeText(Dashboard.this, "Image Saved!", Toast.LENGTH_SHORT).show();
+        else {
+            if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
+                Bitmap photo = (Bitmap) data.getExtras().get("data");
+                RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(photo);
+                userPhoto.setImageDrawable(drawable);
+            }
         }
-//        else if (requestCode ==  CAMERA_REQUEST && resultCode == RESULT_OK) {
-//            Bitmap mphoto = (Bitmap) data.getExtras().get("data");
-//            userPhoto.setImageBitmap(mphoto);
-//        }
+        upload();
     }
 
-//    private String saveImage(Bitmap myBitmap) {
-//        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-//        myBitmap.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
-//        File wallpaperDirectory = new File(
-//                Environment.getExternalStorageDirectory() + IMAGE_DIRECTORY);
-//        // have the object build the directory structure, if needed.
-//        if (!wallpaperDirectory.exists()) {
-//            wallpaperDirectory.mkdirs();
-//        }
-//
-//        try {
-//            File f = new File(wallpaperDirectory, Calendar.getInstance()
-//                    .getTimeInMillis() + ".jpg");
-//            f.createNewFile();
-//            FileOutputStream fo = new FileOutputStream(f);
-//            fo.write(bytes.toByteArray());
-//            MediaScannerConnection.scanFile(this,
-//                    new String[]{f.getPath()},
-//                    new String[]{"image/jpeg"}, null);
-//            fo.close();
-//            Log.d("TAG", "File Saved::--->" + f.getAbsolutePath());
-//
-//            return f.getAbsolutePath();
-//        } catch (IOException e1) {
-//            e1.printStackTrace();
-//        }
-//        return "";
-//    }
+    //upload user profile photo to firebase
+    private void upload() {
+        userPhoto.setDrawingCacheEnabled(true);
+        userPhoto.buildDrawingCache();
+        Bitmap mbitmap = userPhoto.getDrawingCache();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        mbitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte[] mdata = baos.toByteArray();
+        FirebaseStorage storage=FirebaseStorage.getInstance();
+        StorageReference reference=storage.getReferenceFromUrl("gs://vkclub-c861b.appspot.com/");
+        StorageReference imagesRef=reference.child("userprofile-photo/").child(user.getEmail());
+        UploadTask uploadTask = imagesRef.putBytes(mdata);
+        uploadTask.addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(Dashboard.this, "Error : "+e.toString(), Toast.LENGTH_SHORT).show();
+            }
+        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                Toast.makeText(Dashboard.this, "Uploading Done!!!", Toast.LENGTH_SHORT).show();
+
+                Uri downloadUri = taskSnapshot.getDownloadUrl();
+                Picasso.with(Dashboard.this).load(downloadUri).into(userPhoto);
+            }
+        });
+    }
+
+    //make user profile photo circular
+    private RoundedBitmapDrawable createRoundedBitmapDrawableWithBorder(Bitmap mBitmap) {
+        int bitmapWidth = mBitmap.getWidth();
+        int bitmapHeight = mBitmap.getHeight();
+        int borderWidthHalf = 10;
+
+        int bitmapRadius = Math.min(bitmapWidth,bitmapHeight)/2;
+
+        int bitmapSquareWidth = Math.min(bitmapWidth,bitmapHeight/2);
+
+        int newBitmapSquareWidth = bitmapSquareWidth+borderWidthHalf;
+        Bitmap roundedBitmap = Bitmap.createBitmap(newBitmapSquareWidth,newBitmapSquareWidth,Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(roundedBitmap);
+        canvas.drawColor(Color.BLACK);
+
+        int x = (borderWidthHalf + bitmapSquareWidth - bitmapWidth);
+        int y = (borderWidthHalf + bitmapSquareWidth - bitmapHeight);
+
+        canvas.drawBitmap(mBitmap, x, y, null);
+
+        // Initializing a new Paint instance to draw circular border
+        Paint borderPaint = new Paint();
+        borderPaint.setStyle(Paint.Style.STROKE);
+        borderPaint.setStrokeWidth(borderWidthHalf);
+        borderPaint.setColor(Color.GREEN);
+
+        canvas.drawCircle(canvas.getWidth()/2, canvas.getWidth()/2, newBitmapSquareWidth/2, borderPaint);
+
+        RoundedBitmapDrawable roundedBitmapDrawable = RoundedBitmapDrawableFactory.create(mResources,roundedBitmap);
+        roundedBitmapDrawable.setCornerRadius(bitmapRadius);
+
+        roundedBitmapDrawable.setAntiAlias(true);
+
+        // Return the RoundedBitmapDrawable
+        return roundedBitmapDrawable;
+    }
+
+
+    public void showDialog() {
+        Notification newFragment = new Notification();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        if ((getResources().getConfiguration().screenLayout &
+                Configuration.SCREENLAYOUT_SIZE_MASK) ==
+                Configuration.SCREENLAYOUT_SIZE_LARGE) {
+            // The device is using a large layout, so show the fragment as a dialog
+            newFragment.show(fragmentManager, "dialog");
+        } else {
+            // The device is smaller, so show the fragment fullscreen
+            FragmentTransaction transaction = fragmentManager.beginTransaction();
+            // For a little polish, specify a transition animation
+            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+            // To make it fullscreen, use the 'content' root view as the container
+            // for the fragment, which is always the root view for the activity
+            transaction.add(R.id.drawerLayout, newFragment)
+                    .addToBackStack(null).commit();
+        }
+    }
+
+
     }
