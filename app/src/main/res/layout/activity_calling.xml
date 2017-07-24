@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#000000"
+    android:gravity="center"
+    tools:context="com.example.admin.vkclub.Receivecall"
+    android:weightSum="11">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_weight="4"
+        android:gravity="center"
+        android:padding="5dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:id="@+id/peer"
+            android:textColor="@color/colorWhite"
+            android:textSize="40dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/colorWhite"
+            android:id="@+id/call_status"
+            android:textSize="20dp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:layout_weight="3"
+        android:weightSum="2"
+        android:gravity="center"
+        android:padding="60dp">
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/ic_muted_white"
+            android:id="@+id/mute"
+            android:background="@drawable/call_screen_module"
+            android:padding="40dp"
+            android:layout_marginRight="10dp"/>
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/ic_speaker_white"
+            android:id="@+id/speaker"
+            android:background="@drawable/call_screen_module"
+            android:padding="40dp"
+            android:layout_marginLeft="10dp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="4"
+        android:orientation="horizontal"
+        android:gravity="center_horizontal">
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_answer_call"
+            android:id="@+id/answer"
+            android:background="@color/colorBackground"
+            android:layout_marginRight="15dp"
+            android:paddingLeft="60dp"
+            android:paddingRight="60dp"
+            android:paddingTop="30dp"
+            android:paddingBottom="30dp"/>
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_end_call"
+            android:id="@+id/decline"
+            android:background="#A52714"
+            android:layout_marginLeft="15dp"
+            android:paddingRight="60dp"
+            android:paddingLeft="60dp"
+            android:paddingTop="30dp"
+            android:paddingBottom="30dp"/>
+    </LinearLayout>
+
+</LinearLayout>

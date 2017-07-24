@@ -36,7 +36,7 @@ public class GPS_Service extends Service {
                 i.putExtra("latitude", location.getLatitude());
                 i.putExtra("longitude", location.getLongitude());
                 sendBroadcast(i);
-                Log.v("==============", "++++++++++++++++");
+                Log.v(String.valueOf(location.getLatitude()), String.valueOf(location.getLongitude()));
             }
 
             @Override
@@ -61,6 +61,8 @@ public class GPS_Service extends Service {
         locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
         //noinspection MissingPermission
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, listener);
+        //noinspection MissingPermission
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 0, listener);
     }
 
     @Override

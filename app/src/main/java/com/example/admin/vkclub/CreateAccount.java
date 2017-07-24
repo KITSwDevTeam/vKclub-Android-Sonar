@@ -25,6 +25,7 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
+import com.google.firebase.auth.FirebaseUser;
 
 import static com.example.admin.vkclub.R.id.emailValidation;
 import static com.example.admin.vkclub.R.id.nameValidation;
@@ -142,9 +143,12 @@ public class CreateAccount extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
+                    FirebaseUser user = mAuth.getCurrentUser();
+                    sendEmailVerification(user);
                     // create account success
                     // log user in to the dashboard
-                    login(email, password);
+                    //login(email, password);
+
                 } else {
                     spinner.setVisibility(View.GONE);
                     statusText.setText("");
@@ -202,6 +206,41 @@ public class CreateAccount extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void sendEmailVerification(FirebaseUser user){
+        statusText.setText("Sending verification email... ");
+        user.sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()){
+                    afterSignUpDialog("Success", "Please check your email, we have sent a confirmation message.\nThank you for using Vkclub.");
+                }else {
+                    spinner.setVisibility(View.GONE);
+                    statusText.setText("");
+                    presentDialog("Error Occur", "Please try again!\nThank you for using Vkclub.");
+                }
+            }
+        });
+    }
+
+    private void afterSignUpDialog(String title, String msg){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(title);
+        builder.setMessage(msg);
+        builder.setCancelable(true);
+
+        builder.setPositiveButton(
+                "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        Intent in = new Intent(CreateAccount.this, LoginActivity.class);
+                        startActivity(in);
+                    }
+                });
+
+        AlertDialog alert = builder.create();
+        alert.show();
     }
 
     private void presentDialog(String title, String msg) {

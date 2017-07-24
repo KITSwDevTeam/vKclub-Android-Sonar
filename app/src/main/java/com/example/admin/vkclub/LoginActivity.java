@@ -154,8 +154,8 @@ public class LoginActivity extends AppCompatActivity {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                boolean emailStatus, passStatus;
-                String getEmail = email.getText().toString();
+                final boolean emailStatus, passStatus;
+                final String getEmail = email.getText().toString();
                 String getPass = pass.getText().toString();
 
                 if ((getEmail.indexOf("@") <= 0) || !getEmail.contains(".com") || getEmail.isEmpty()) {
@@ -180,10 +180,17 @@ public class LoginActivity extends AppCompatActivity {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             if (task.isSuccessful()) {
-                                spinner.setVisibility(View.GONE);
-                                Intent intent =  new Intent(LoginActivity.this, Dashboard.class);
-                                startActivity(intent);
-                                finish();
+                                FirebaseUser mUser = mAuth.getCurrentUser();
+                                boolean emailVerified = mUser.isEmailVerified();
+                                System.out.println("Email Verified :::::::::::::::   " + emailVerified );
+                                if (emailVerified){
+                                    Intent intent =  new Intent(LoginActivity.this, Dashboard.class);
+                                    startActivity(intent);
+                                    finish();
+                                }else {
+                                    spinner.setVisibility(View.GONE);
+                                    presentDialog("Please verify your email address!", "Check email sent to " + getEmail + " for verification link.\nThank you for using Vkclub.");
+                                }
                             } else {
                                 spinner.setVisibility(View.GONE);
                                 if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {

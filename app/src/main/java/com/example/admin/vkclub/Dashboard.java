@@ -5,6 +5,11 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.media.Image;
+import android.media.MediaPlayer;
+import android.net.sip.SipSession;
+import android.os.SystemClock;
+import android.support.v4.app.DialogFragment;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -13,7 +18,9 @@ import android.app.ActionBar;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -26,13 +33,24 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.net.sip.SipAudioCall;
+import android.net.sip.SipException;
+import android.net.sip.SipManager;
+import android.net.sip.SipProfile;
+import android.net.sip.SipRegistrationListener;
 import android.os.Build;
+import android.preference.PreferenceFragment;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.support.v4.widget.DrawerLayout;
@@ -43,11 +61,14 @@ import android.telephony.SmsManager;
 import android.text.style.TtsSpan;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -60,6 +81,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.Dash;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserInfo;
@@ -72,6 +94,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -92,14 +115,16 @@ public class Dashboard extends AppCompatActivity {
 
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
-    private Button logoutBtn, opendrawer, appmode, mapButton, membershipBtn;
+    private Button logoutBtn, opendrawer, appmode, mapButton, membershipBtn, voipBtn, setting, openNotification, aboutUs;
     private ImageView userPhoto;
     private TextView userName, userEmail;
+    public static TextView msg;
     private GoogleApiClient mGoogleApiClient;
     private Location mBestReading;
     private LocationRequest mLocationRequest;
     private Bitmap mBitmap;
     private Resources mResources;
+    public Voip voipClient;
 
     private BroadcastReceiver broadcastReceiver;
     String phoneNumber= "+855962304669";
@@ -107,14 +132,83 @@ public class Dashboard extends AppCompatActivity {
     int statusCode;
     double currentLat, currentLon;
 
+    public SipManager mSipManager = null;
+    public SipProfile mSipProfile = null;
+    public SipAudioCall audioCall = null;
+    public String callAddress = "";
+    public String sipUsername;
+    public String sipDomain;
+    public String sipPassword;
+    public int sipPort = 5060;
+    public IncomingCallReceiver callReceiver;
+    public static final int CALL_ADDRESS = 1;
+    public static final int SET_AUTH_INFO = 2;
+    public static final int UPDATE_SETTINGS_DIALOG = 3;
+    public static final int HANG_UP = 4;
+    public Context context;
+    public DialogFragment newFragment;
+    public static DialogFragment callFragment;
+    public static FragmentManager fragmentManager;
+    public int CALL_IN = 0;
+    int hours = 0, mins = 0, secs = 0;
+
+    private static Context returnContext;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
+        Dashboard.returnContext = this;
 
         appmode = (Button) findViewById(R.id.appMode);
         mapButton = (Button) findViewById(R.id.mapBtn);
-        membershipBtn = (Button) findViewById(R.id.membershipp);
+        membershipBtn = (Button) findViewById(R.id.membership);
+        voipBtn = (Button)findViewById(R.id.voip);
+        openNotification = (Button)findViewById(R.id.openNotification);
+        aboutUs = (Button) findViewById(R.id.about_us);
+
+        openNotification.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                makeToast("openNotification clicked");
+            }
+        });
+
+        voipBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+//                Intent in = new Intent(getApplicationContext(), Voip.class);
+//                startActivity(in);
+                Voip newFragment = new Voip();
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                if ((getResources().getConfiguration().screenLayout &
+                        Configuration.SCREENLAYOUT_SIZE_MASK) ==
+                        Configuration.SCREENLAYOUT_SIZE_LARGE) {
+                    // The device is using a large layout, so show the fragment as a dialog
+                    newFragment.show(fragmentManager, "dialog");
+                } else {
+                    // The device is smaller, so show the fragment fullscreen
+                    FragmentTransaction transaction = fragmentManager.beginTransaction();
+                    // For a little polish, specify a transition animation
+                    transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+                    // To make it fullscreen, use the 'content' root view as the container
+                    // for the fragment, which is always the root view for the activity
+                    transaction.add(R.id.drawerLayout, newFragment)
+                            .addToBackStack(null).commit();
+                }
+            }
+        });
+
+        setting = (Button)findViewById(R.id.setting);
+
+        setting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getFragmentManager().beginTransaction().replace(android.R.id.content, new SipSettings()).commit();
+            }
+        });
+
+        msg = (TextView)findViewById(R.id.welcomeMsg);
 
         if(!runtime_permissions())
             start_gps_service();
@@ -124,6 +218,7 @@ public class Dashboard extends AppCompatActivity {
 
         // call navigate
         navigateScreen(mapButton, Map.class);
+        navigateScreen(aboutUs, About.class);
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
         mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.open, R.string.close);
@@ -148,28 +243,6 @@ public class Dashboard extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
         FirebaseUser user = mAuth.getCurrentUser();
-        if(user != null){
-            userPhoto = (ImageView)findViewById(R.id.userprofile);
-            userName = (TextView)findViewById(R.id.username);
-            userEmail = (TextView)findViewById(R.id.useremail);
-            Uri photo = user.getPhotoUrl();
-
-            // find the Facebook profile and get the user's id
-            for(UserInfo profile : user.getProviderData()) {
-                // check if the provider id matches "facebook.com"
-                if(profile.getProviderId().equals("facebook.com")) {
-                    facebookUserId = profile.getUid();
-                }
-            }
-            String photoUrl = "https://graph.facebook.com/" + facebookUserId + "/picture?height=800";
-//            photoUrl.transform(new CropCircleTransform());
-//            new DownloadImageTask(userPhoto)
-//                    .execute(photoUrl);
-
-            new BitmapFromUrl(userPhoto).execute(photoUrl);
-            userName.setText(user.getDisplayName());
-            userEmail.setText(user.getEmail());
-        }
 
 
         mAuthListener = new FirebaseAuth.AuthStateListener() {
@@ -321,7 +394,270 @@ public class Dashboard extends AppCompatActivity {
                 alertDialog.show();
             }
         });
+
+        System.out.println("ON CREATE");
+
+        this.fragmentManager = getSupportFragmentManager();
+//        voipClient = new Voip();
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("android.SipDemo.INCOMING_CALL");
+        callReceiver = new IncomingCallReceiver();
+        this.registerReceiver(callReceiver, filter);
+
+        initializeManager();
+
     }
+
+    public static Context getAppContext(){
+        return Dashboard.returnContext;
+    }
+
+    public void initializeManager(){
+        System.out.println("INITIALIZE MANAGER");
+        if(mSipManager == null){
+            mSipManager = SipManager.newInstance(this);
+        }
+        initializeLocalProfile();
+    }
+    /**
+     * Logs you into your SIP provider, registering this device as the location to
+     * send SIP calls to for your SIP address.
+     */
+    public void initializeLocalProfile() {
+
+        if (mSipManager == null) {
+            return;
+        }
+
+        if (mSipProfile != null) {
+            closeLocalProfile();
+        }
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        sipUsername = prefs.getString("namePref", "");
+        sipDomain = prefs.getString("domainPref", "");
+        sipPassword = prefs.getString("passPref", "");
+
+        if (sipUsername.length() == 0 || sipDomain.length() == 0 || sipPassword.length() == 0) {
+            getFragmentManager().beginTransaction().replace(android.R.id.content, new SipSettings()).commit();
+            return;
+        }
+
+        try {
+            SipProfile.Builder builder = new SipProfile.Builder(sipUsername, sipDomain);
+            builder.setPassword(sipPassword);
+            builder.setPort(sipPort);
+            builder.setProtocol("UDP");
+//            builder.setAutoRegistration(true);
+            builder.setSendKeepAlive(true);
+            mSipProfile = builder.build();
+
+            Intent i = new Intent();
+            i.setAction("android.SipDemo.INCOMING_CALL");
+            PendingIntent pi = PendingIntent.getBroadcast(this, 0, i, Intent.FILL_IN_DATA);
+
+            mSipManager.open(mSipProfile, pi, null);
+
+            // This listener must be added AFTER manager.open is called,
+            // Otherwise the methods aren't guaranteed to fire.
+
+            mSipManager.setRegistrationListener(mSipProfile.getUriString(), new SipRegistrationListener() {
+                @Override
+                public void onRegistering(String s) {
+                    System.out.println("1.SET Registering with SIP Server...");
+                }
+
+                @Override
+                public void onRegistrationDone(String s, long l) {
+                    System.out.println("1.SET Ready");
+                }
+
+                @Override
+                public void onRegistrationFailed(String s, int i, String s1) {
+                    System.out.println("1.SET Registration failed.");
+                }
+            });
+
+            mSipManager.register(mSipProfile, 240, new SipRegistrationListener() {
+                @Override
+                public void onRegistering(String s) {
+                    Log.d("1.Registering with SIP Server...", "");
+                }
+
+                @Override
+                public void onRegistrationDone(String s, long l) {
+                    Log.d("1.Ready", "");
+                }
+
+                @Override
+                public void onRegistrationFailed(String s, int i, String s1) {
+                    Log.d("1.Registration failed.", "");
+                }
+            });
+
+        } catch (ParseException pe) {
+            Log.d("ParseException", pe.toString());
+        } catch (SipException se){
+            Log.d("SipException hi", se.toString());
+        }
+
+        System.out.println("INITIALIZE LOCAL PROFILE");
+
+    }
+
+    /**
+     * Closes out your local profile, freeing associated objects into memory
+     * and unregistering your device from the server.
+     */
+    public void closeLocalProfile() {
+        if (mSipManager == null) {
+            return;
+        }
+        try {
+            if (mSipProfile != null) {
+                mSipManager.close(mSipProfile.getUriString());
+            }
+        } catch (Exception ee) {
+            Log.d("/onDestroy", "Failed to close local profile.", ee);
+        }
+        System.out.println("CLOSE LOCAL PROFILE");
+    }
+
+    /**
+     * Make an outgoing call.
+     */
+    public void initiateCall(final String callee) {
+        final Timer T = new Timer();
+        try {
+            SipAudioCall.Listener listener = new SipAudioCall.Listener() {
+                // Much of the client's interaction with the SIP Stack will
+                // happen via listeners.  Even making an outgoing call, don't
+                // forget to set up a listener to set things up once the call is established.
+                @Override
+                public void onCallEstablished(SipAudioCall call) {
+                    call.startAudio();
+                    call.setSpeakerMode(false);
+                    if(audioCall.isMuted()) {
+                        audioCall.toggleMute();
+                    }
+                    System.out.println("call established "+ callee + "Dashboard");
+                    System.out.println("IS IN CALL DASHBOARD "+call.isInCall());
+
+                    T.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            Calling.getInstance().updateCallDuation();
+                            System.out.println("Timer Task......");
+                        }
+                    }, 0, 1000);
+                }
+
+                @Override
+                public void onCallEnded(SipAudioCall call) {
+                    System.out.println("Call ended ========================= Dashboard");
+                    T.cancel();
+                    System.out.println("Timer cancel....");
+                    Calling.activity.finish();
+                }
+
+                @Override
+                public void onRinging(SipAudioCall call, SipProfile caller) {
+                    super.onRinging(call, caller);
+                    System.out.println("ON RINGING");
+                }
+
+                @Override
+                public void onRingingBack(SipAudioCall call) {
+                    super.onRingingBack(call);
+                    System.out.println("ON RINGING BACK");
+                }
+            };
+
+            callAddress = "sip:"+callee+"@"+sipDomain;
+            System.out.println("calling " + callee + "========================= Dashboard  " + sipDomain);
+            if (audioCall != null){
+                audioCall = mSipManager.makeAudioCall(mSipProfile.getUriString(), callAddress, listener, 180);
+            }else {
+                presentDialog("Error", "Either you are not connected to vKirirom network or server is not responding.\nThank you for using Vkclub.");
+            }
+            System.out.println("can make audio call");
+        }
+        catch (Exception e) {
+            Log.i("/InitiateCall", "General Exception", e);
+            if (mSipProfile != null) {
+                try {
+                    mSipManager.close(mSipProfile.getUriString());
+                } catch (Exception ee) {
+                    Log.i("/InitiateCall",
+                            "Error when trying to close manager.", ee);
+                    ee.printStackTrace();
+                }
+            }
+            if (audioCall != null) {
+                audioCall.close();
+            }
+        }
+    }
+
+    public void checkStatus(int state) {
+        switch (state){
+            case SipSession.State.IN_CALL:
+                System.out.println("IN_CALL Dashboard");
+                break;
+            case SipSession.State.INCOMING_CALL:
+                System.out.println("INCOMING_CALL Dashboard");
+                break;
+            case SipSession.State.INCOMING_CALL_ANSWERING:
+                System.out.println("INCOMING_CALL_ANSWERING Dashboard");
+                break;
+            case SipSession.State.NOT_DEFINED:
+                System.out.println("NOT_DEFINED Dashboard");
+                break;
+            case SipSession.State.OUTGOING_CALL:
+                System.out.println("OUTGOING_CALL Dashboard");
+                break;
+            case SipSession.State.OUTGOING_CALL_CANCELING:
+                System.out.println("OUTGOING_CALL_CANCELING Dashboard");
+                break;
+            case SipSession.State.OUTGOING_CALL_RING_BACK:
+                System.out.println("OUTGOING_CALL_RING_BACK Dashboard");
+                break;
+            case SipSession.State.PINGING:
+                System.out.println("PINGING Dashboard");
+                break;
+            case SipSession.State.READY_TO_CALL:
+                System.out.println("READY_TO_CALL Dashboard");
+                break;
+            case SipSession.State.REGISTERING:
+                System.out.println("REGISTERING Dashboard");
+                break;
+            case SipSession.State.DEREGISTERING:
+                System.out.println("DEREGISTERING Dashboard");
+                break;
+            default:
+                System.out.println("DEFAULT Dashboard");
+                break;
+        }
+    }
+
+    //    Class Sip Settings
+    public static class SipSettings extends PreferenceFragment {
+
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            // Note that none of the preferences are actually defined here.
+            // They're all in the XML file res/xml/preferences.xml.
+            super.onCreate(savedInstanceState);
+            addPreferencesFromResource(R.xml.preferences);
+        }
+    }
+
+    /**
+     * Closes out your local profile, freeing associated objects into memory
+     * and unregistering your device from the server.
+     */
+
 
     private RoundedBitmapDrawable createRoundedBitmapDrawableWithBorder(Bitmap mBitmap) {
         int bitmapWidth = mBitmap.getWidth();
@@ -382,9 +718,31 @@ public class Dashboard extends AppCompatActivity {
 
     private boolean runtime_permissions() {
         if (Build.VERSION.SDK_INT >= 23 && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 100);
+                != PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)  {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.USE_SIP,
+                    Manifest.permission.WRITE_SETTINGS,
+                    Manifest.permission.INTERNET,
+                    Manifest.permission.ACCESS_WIFI_STATE,
+                    Manifest.permission.RECORD_AUDIO
+            }, 100);
+            return true;
+        }
+
+        if (Build.VERSION.SDK_INT >= 23 && ContextCompat.checkSelfPermission(this, Manifest.permission.USE_SIP) != PackageManager.PERMISSION_DENIED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_SETTINGS) != PackageManager.PERMISSION_DENIED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_DENIED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_WIFI_STATE) != PackageManager.PERMISSION_DENIED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_DENIED) {
+            requestPermissions(new String[]{
+                    Manifest.permission.USE_SIP,
+                    Manifest.permission.WRITE_SETTINGS,
+                    Manifest.permission.INTERNET,
+                    Manifest.permission.ACCESS_WIFI_STATE,
+                    Manifest.permission.RECORD_AUDIO
+            }, 100);
             return true;
         }
         return false;
@@ -406,12 +764,14 @@ public class Dashboard extends AppCompatActivity {
 
         if(distance < 17){
             appmode.setText("IN-Kirirom Mode " + distance);
+            appmode.setTextColor(Color.parseColor("#1A6940"));
             this.statusCode = 0;
         } else if(distance >= 17){
             appmode.setText("OFF-Kirirom Mode " + distance);
             this.statusCode = 1;
         } else {
             appmode.setText("Unidentified " + distance);
+            appmode.setTextColor(Color.parseColor("#c0c0c0"));
             this.statusCode = 2;
         }
     }
@@ -424,7 +784,12 @@ public class Dashboard extends AppCompatActivity {
             if(grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED){
                 // READY FOR LOCATION TRACKING
                 start_gps_service();
-
+            } else if(grantResults[2] == PackageManager.PERMISSION_GRANTED &&
+            grantResults[3] == PackageManager.PERMISSION_GRANTED &&
+            grantResults[4] == PackageManager.PERMISSION_GRANTED &&
+            grantResults[5] == PackageManager.PERMISSION_GRANTED &&
+                    grantResults[6] == PackageManager.PERMISSION_GRANTED){
+                runtime_permissions();
             }else {
                 // Request Runtime Permission again
                 runtime_permissions();
@@ -438,6 +803,7 @@ public class Dashboard extends AppCompatActivity {
         // Connect the client.
 //        mGoogleApiClient.connect();
         super.onStart();
+        initializeManager();
     }
 
     @Override
@@ -469,13 +835,25 @@ public class Dashboard extends AppCompatActivity {
         }
 
         registerReceiver(broadcastReceiver, new IntentFilter("location_update"));
+
+        System.out.println("ON RESUME");
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if(audioCall != null){
+            audioCall.close();
+        }
         if (broadcastReceiver != null){
             unregisterReceiver(broadcastReceiver);
+        }
+
+        System.out.println("ON DESTROY");
+        closeLocalProfile();
+
+        if (callReceiver != null) {
+            this.unregisterReceiver(callReceiver);
         }
     }
 
@@ -508,7 +886,7 @@ public class Dashboard extends AppCompatActivity {
         Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
     }
 
-    private void presentDialog(String title, String msg) {
+    public void presentDialog(String title, String msg) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(title);
         builder.setMessage(msg);
@@ -525,4 +903,177 @@ public class Dashboard extends AppCompatActivity {
         AlertDialog alert = builder.create();
         alert.show();
     }
+
+    public void showReceiveCallDialog() {
+
+        if ((getResources().getConfiguration().screenLayout &
+                Configuration.SCREENLAYOUT_SIZE_MASK) ==
+                Configuration.SCREENLAYOUT_SIZE_LARGE) {
+            // The device is using a large layout, so show the fragment as a dialog
+            callFragment.show(fragmentManager, "dialog");
+        } else {
+            // The device is smaller, so show the fragment fullscreen
+            FragmentTransaction transaction = fragmentManager.beginTransaction();
+            // For a little polish, specify a transition animation
+            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+            // To make it fullscreen, use the 'content' root view as the container
+            // for the fragment, which is always the root view for the activity
+            transaction.add(R.id.drawerLayout, callFragment)
+                    .addToBackStack(null).commit();
+        }
+    }
+
+    public void dismissReceiveCallDialog(){
+        callFragment.getDialog().dismiss();
+    }
+
+
+    private BroadcastReceiver incomingCallReceiver = new BroadcastReceiver() {
+
+        SipAudioCall.Listener listener = new SipAudioCall.Listener() {
+            @Override
+            public void onCallEstablished(SipAudioCall call) {
+//                    call.startAudio();
+//                    call.setSpeakerMode(true);
+//                    if(audioCall.isMuted()) {
+//                        audioCall.toggleMute();
+//                    }
+//                    msg.setText("call established "+ callee);
+//                    Toast.makeText(getApplicationContext(), "call established", Toast.LENGTH_LONG).show();
+//                    makeToast("call established");
+                System.out.println("call established Incoming Call Receiver");
+                System.out.println("IS IN CALL"+call.isInCall());
+
+                checkStatus(call.getState(), "onCallEstablished");
+            }
+
+            @Override
+            public void onCallEnded(SipAudioCall call) {
+                System.out.println("Call ended Incoming Call Receiver =========================");
+                checkStatus(call.getState(), "onCallEnded");
+                dismissReceiveCallDialog();
+            }
+
+            @Override
+            public void onChanged(SipAudioCall call) {
+                super.onChanged(call);
+                System.out.println("On Changed Incoming Call Receiver");
+                checkStatus(call.getState(), "onChanged");
+            }
+
+            @Override
+            public void onCalling(SipAudioCall call) {
+                super.onCalling(call);
+                System.out.println("On Calling Incoming Call Receiver");
+                checkStatus(call.getState(), "onCalling");
+            }
+
+            @Override
+            public void onCallBusy(SipAudioCall call) {
+                super.onCallBusy(call);
+                System.out.println("On Call Busy Incoming Call Receiver");
+                checkStatus(call.getState(), "onCallBusy");
+            }
+
+            @Override
+            public void onCallHeld(SipAudioCall call) {
+                super.onCallHeld(call);
+                System.out.println("On Call Held Incoming Call Receiver");
+                checkStatus(call.getState(), "onCallHeld");
+            }
+
+            @Override
+            public void onError(SipAudioCall call, int errorCode, String errorMessage) {
+                super.onError(call, errorCode, errorMessage);
+                System.out.println("On Error " + errorCode + "  " + errorMessage + "Incoming Call Receiver");
+                checkStatus(call.getState(), "onError");
+            }
+
+            @Override
+            public void onReadyToCall(SipAudioCall call) {
+                super.onReadyToCall(call);
+                System.out.println("On Ready to call Incoming Call Receiver");
+                checkStatus(call.getState(), "onReadyToCall");
+            }
+
+            @Override
+            public void onRinging(SipAudioCall call, SipProfile caller) {
+                super.onRinging(call, caller);
+                System.out.println("On Ringing Incoming Call Receiver");
+                checkStatus(call.getState(), "onRinging");
+            }
+
+            @Override
+            public void onRingingBack(SipAudioCall call) {
+                super.onRingingBack(call);
+                System.out.println("On Rining Back Incoming Call Receiver");
+                checkStatus(call.getState(), "onRingingBack");
+            }
+        };
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            SipAudioCall incomingCall = null;
+            Dashboard dashboardActivity = (Dashboard) context;
+
+            try {
+                incomingCall = dashboardActivity.mSipManager.takeAudioCall(intent, listener);
+            } catch (SipException e) {
+                e.printStackTrace();
+            } catch (Exception e){
+                System.out.println("Exception " + e);
+            }
+
+//            Intent in = new Intent(Intent.ACTION_DEFAULT, null, context, Dashboard.class);
+//            in.putExtra("IS_CALL_IN", 1);
+//            context.startActivity(in);
+
+            audioCall = incomingCall;
+            showReceiveCallDialog();
+        }
+
+        private void checkStatus(int state, String event){
+            switch (state){
+                case SipSession.State.IN_CALL:
+                    System.out.println("IN_CALL Incoming Call Receiver");
+                    break;
+                case SipSession.State.INCOMING_CALL:
+                    System.out.println("INCOMING_CALL Incoming Call Receiver");
+                    break;
+                case SipSession.State.INCOMING_CALL_ANSWERING:
+                    System.out.println("INCOMING_CALL_ANSWERING Incoming Call Receiver");
+                    break;
+                case SipSession.State.NOT_DEFINED:
+                    System.out.println("NOT_DEFINED Incoming Call Receiver");
+                    break;
+                case SipSession.State.OUTGOING_CALL:
+                    System.out.println("OUTGOING_CALL Incoming Call Receiver");
+                    break;
+                case SipSession.State.OUTGOING_CALL_CANCELING:
+                    System.out.println("OUTGOING_CALL_CANCELING Incoming Call Receiver");
+                    break;
+                case SipSession.State.OUTGOING_CALL_RING_BACK:
+                    System.out.println("OUTGOING_CALL_RING_BACK Incoming Call Receiver");
+                    break;
+                case SipSession.State.PINGING:
+                    System.out.println("PINGING Incoming Call Receiver");
+                    break;
+                case SipSession.State.READY_TO_CALL:
+                    if(event.equals("onCallEnded")){
+                        dismissReceiveCallDialog();
+                    }
+                    System.out.println("READY_TO_CALL Incoming Call Receiver");
+                    break;
+                case SipSession.State.REGISTERING:
+                    System.out.println("REGISTERING Incoming Call Receiver");
+                    break;
+                case SipSession.State.DEREGISTERING:
+                    System.out.println("DEREGISTERING Incoming Call Receiver");
+                    break;
+                default:
+                    System.out.println("DEFAULT Incoming Call Receiver");
+                    break;
+            }
+        }
+    };
 }

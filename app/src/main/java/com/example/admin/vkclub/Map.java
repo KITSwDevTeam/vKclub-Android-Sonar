@@ -2,6 +2,7 @@ package com.example.admin.vkclub;
 
 
 import android.annotation.TargetApi;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
@@ -47,7 +48,7 @@ public class Map extends AppCompatActivity implements OnMapReadyCallback,
     SupportMapFragment mFragment;
     Marker mCurrLocation;
     LatLng latLng;
-
+    public IncomingCallReceiver callReceiver = new IncomingCallReceiver();
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -74,6 +75,10 @@ public class Map extends AppCompatActivity implements OnMapReadyCallback,
 
         mFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mFragment.getMapAsync(this);
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("android.SipDemo.INCOMING_CALL");
+        this.registerReceiver(callReceiver, filter);
     }
 
     @Override

@@ -73,137 +73,102 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center">
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:weightSum="5">
 
             <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                >
+                android:layout_width="match_parent"
+                android:layout_height="0dip"
+                android:layout_weight="2"
+                android:orientation="horizontal"
+                android:gravity="center">
 
                 <Button
-                    android:layout_width="180dp"
-                    android:layout_height="180dp"
-                    android:background="#1a6945"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/service_module"
                     android:textAlignment="center"
-                    android:padding="50dp"
+                    android:padding="43dp"
                     android:id="@+id/serviceBtn"
                     android:drawableTop="@drawable/ic_customer_service"
                     android:text="Service"
                     android:textAllCaps="false"
-                    android:textColor="@color/colorWhite"
-                    android:textSize="20dp" />
-
-                <!--<TextView-->
-                    <!--android:layout_width="wrap_content"-->
-                    <!--android:layout_height="wrap_content"-->
-                    <!--android:text="Service"-->
-                    <!--android:textStyle="bold"-->
-                    <!--android:padding="5dp"-->
-                    <!--android:layout_gravity="center_horizontal"-->
-                    <!--android:textColor="@color/colorWhite"/>-->
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-               >
+                    android:textColor="@color/colorWhite" />
 
                 <Button
-                    android:layout_width="180dp"
-                    android:layout_height="180dp"
-                    android:background="#1a6939"
-                    android:padding="50dp"
-                    android:drawableTop="@drawable/ic_placeholder"
                     android:id="@+id/mapBtn"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/map_module"
+                    android:drawableTop="@drawable/ic_placeholder"
+                    android:padding="43dp"
                     android:text="Map"
                     android:textAllCaps="false"
-                    android:textColor="@color/colorWhite"
-                    android:textSize="20dp"/>
+                    android:textColor="@color/colorWhite" />
 
-                <!--<TextView-->
-                    <!--android:layout_width="wrap_content"-->
-                    <!--android:layout_height="wrap_content"-->
-                    <!--android:text="Map"-->
-                    <!--android:textStyle="bold"-->
-                    <!--android:padding="5dp"-->
-                    <!--android:layout_gravity="center_horizontal"-->
-                    <!--android:textColor="@color/colorWhite"/>-->
             </LinearLayout>
 
-
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center">
-
             <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                >
+                android:layout_width="match_parent"
+                android:layout_height="0dip"
+                android:layout_weight="2"
+                android:orientation="horizontal"
+                android:gravity="center">
 
                 <Button
-                    android:layout_width="180dp"
-                    android:layout_height="180dp"
-                    android:background="#1a6935"
-                    android:padding="50dp"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/about_module"
+                    android:padding="43dp"
                     android:src="@drawable/ic_about_us"
                     android:text="About us"
                     android:textAllCaps="false"
                     android:textColor="@color/colorWhite"
                     android:drawableTop="@drawable/ic_about_us"
-                    android:textSize="20dp"/>
+                    android:id="@+id/about_us"/>
 
-                <!--<TextView-->
-                    <!--android:layout_width="wrap_content"-->
-                    <!--android:layout_height="wrap_content"-->
-                    <!--android:text="About Us"-->
-                    <!--android:textStyle="bold"-->
-                    <!--android:padding="5dp"-->
-                    <!--android:layout_gravity="center_horizontal"-->
-                    <!--android:textColor="@color/colorWhite"/>-->
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                >
 
                 <Button
-                    android:layout_width="180dp"
-                    android:layout_height="180dp"
-                    android:background="#1a6945"
-                    android:padding="50dp"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/membership_module"
+                    android:padding="43dp"
                     android:drawableTop="@drawable/ic_id_card"
                     android:text="Membership"
                     android:textAllCaps="false"
                     android:textColor="@color/colorWhite"
-                    android:id="@+id/membershipp"
-                    />
+                    android:id="@+id/membership" />
 
-                <!--<TextView-->
-                    <!--android:layout_width="wrap_content"-->
-                    <!--android:layout_height="wrap_content"-->
-                    <!--android:text="Membership"-->
-                    <!--android:textStyle="bold"-->
-                    <!--android:padding="5dp"-->
-                    <!--android:layout_gravity="center_horizontal"-->
-                    <!--android:textColor="@color/colorWhite"/>-->
             </LinearLayout>
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dip"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="center">
 
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/phone_module"
+                    android:text="Phone"
+                    android:drawableLeft="@drawable/ic_phone_symbol_of_an_auricular_inside_a_circle"
+                    android:paddingLeft="143dp"
+                    android:paddingRight="143dp"
+                    android:textAllCaps="false"
+                    android:textColor="@color/colorWhite"
+                    android:id="@+id/voip"/>
+
+            </LinearLayout>
 
         </LinearLayout>
-
 
     </LinearLayout>
 
@@ -287,19 +252,19 @@
                     android:textAllCaps="false"/>
 
                 <Button
+                    android:id="@+id/contact"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
-                    android:text="Contact"
-                    android:id="@+id/contact"
                     android:layout_gravity="center"
-                    android:background="@drawable/sidebar_module"
                     android:layout_marginTop="1dp"
-                    android:textColor="@color/colorWhite"
+                    android:background="@drawable/sidebar_module"
                     android:drawableLeft="@drawable/ic_phone_call"
                     android:drawableRight="@drawable/ic_play_symbol"
                     android:paddingLeft="20dp"
                     android:paddingRight="10dp"
-                    android:textAllCaps="false"/>
+                    android:text="Contact"
+                    android:textAllCaps="false"
+                    android:textColor="@color/colorWhite" />
 
                 <Button
                     android:layout_width="match_parent"
@@ -326,9 +291,7 @@
                     android:textAllCaps="false"
                     android:textColor="@color/colorWhite"
                     android:layout_marginBottom="2dp"
-                    android:id="@+id/sos"
-
-                    />
+                    android:id="@+id/sos" />
             </LinearLayout>
         </LinearLayout>
 
