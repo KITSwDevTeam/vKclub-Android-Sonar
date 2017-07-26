@@ -10,4 +10,6 @@
     <color name="colorStatusBar">#1a7043</color>
     <color name="goldenrod">#daa520</color>
     <color name="sample">#269b5f</color>
+
+    <color name="black_overlay">#66000000</color>
 </resources>
