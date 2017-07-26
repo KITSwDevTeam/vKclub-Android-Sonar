@@ -148,7 +148,7 @@ public class Dashboard extends AppCompatActivity {
 
 
     private BroadcastReceiver broadcastReceiver;
-    String phoneNumber= "+855962304669";
+    String phoneNumber= "+13343758067";
     String message, facebookUserId = "";
     int statusCode;
     double currentLat, currentLon;
