@@ -6,7 +6,7 @@ android {
     defaultConfig {
         //multiDexEnabled = true  //me
         applicationId "com.example.admin.vkclub"
-        minSdkVersion 19
+        minSdkVersion 16
         targetSdkVersion 25
         versionCode 1
         versionName "1.0"

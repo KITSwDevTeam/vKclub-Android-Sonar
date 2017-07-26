@@ -72,7 +72,7 @@ public class BitmapFromUrl extends AsyncTask<String, Void, Bitmap> {
         // Initializing a new Paint instance to draw circular border
         Paint borderPaint = new Paint();
         borderPaint.setStyle(Paint.Style.STROKE);
-        borderPaint.setStrokeWidth(borderWidthHalf*4);
+        borderPaint.setStrokeWidth(borderWidthHalf);
         borderPaint.setColor(Color.GREEN);
 
         canvas.drawCircle(canvas.getWidth()/2, canvas.getWidth()/2, newBitmapSquareWidth/2, borderPaint);

@@ -65,6 +65,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.facebook.login.LoginManager;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -73,12 +74,15 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.Dash;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserInfo;
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageMetadata;
@@ -137,6 +141,8 @@ public class Dashboard extends AppCompatActivity {
     private Location mBestReading;
     private LocationRequest mLocationRequest;
     private Resources mResources;
+    StorageReference gsReference;
+    FirebaseStorage storage;
     Uri uri;
 
 
@@ -148,13 +154,12 @@ public class Dashboard extends AppCompatActivity {
     double currentLat, currentLon;
     FirebaseUser user;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
 
-
+        storage = FirebaseStorage.getInstance();
 
         appmode = (Button) findViewById(R.id.appMode);
         mapButton = (Button) findViewById(R.id.mapBtn);
@@ -162,18 +167,18 @@ public class Dashboard extends AppCompatActivity {
         mName = (EditText) findViewById(R.id.name1);
         mEmail = (EditText) findViewById(R.id.email1);
         mCurrentpass = (EditText) findViewById(R.id.confirmpass1);
-        userPhoto = (ImageView)findViewById(R.id.userphoto);
-        userName = (TextView)findViewById(R.id.username);
-        userEmail = (TextView)findViewById(R.id.useremail);
+        userPhoto = (ImageView) findViewById(R.id.userphoto);
+        userName = (TextView) findViewById(R.id.username);
+        userEmail = (TextView) findViewById(R.id.useremail);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
         opendrawer = (Button) findViewById(R.id.openDrawer);
         mProvider = (Button) findViewById(R.id.provider);
         logoutBtn = (Button) findViewById(R.id.logout);
-        mSetting = (Button)findViewById(R.id.setting);
-        mContact = (Button)findViewById(R.id.contact);
+        mSetting = (Button) findViewById(R.id.setting);
+        mContact = (Button) findViewById(R.id.contact);
         mNotification = (Button) findViewById(R.id.openNotification);
 
-        if(!runtime_permissions())
+        if (!runtime_permissions())
             start_gps_service();
 
         // upcoming module
@@ -193,7 +198,7 @@ public class Dashboard extends AppCompatActivity {
             }
         });
 
-        if(Build.VERSION.SDK_INT >= 21){
+        if (Build.VERSION.SDK_INT >= 21) {
             Window window = this.getWindow();
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
@@ -203,296 +208,290 @@ public class Dashboard extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         user = mAuth.getCurrentUser();
         Log.d("++++++++++++++TAG+++++++++++++", user.getProviderId());
-        if(user != null){
-
+        if (user != null) {
 
             // find the Facebook profile and get the user's id
-            for(UserInfo profile : user.getProviderData()) {
+            for (UserInfo profile : user.getProviderData()) {
                 Log.v(">>>>>>>>>>>>>>>>>>>>>>>>>", profile.getProviderId());
 //                presentDialog("Provider ID", profile.getProviderId());
 
                 // check if the provider id matches "facebook.com"
-                if(profile.getProviderId().equals("facebook.com")) {
+                if (profile.getProviderId().equals("facebook.com")) {
 //                    presentDialog("Provider ID", profile.getProviderId());
                     facebookUserId = profile.getUid();
-
+//                    setProfilePic(user.getPhotoUrl().toString());
+//                    Log.d("*******************************",user.getPhotoUrl().toString());
                     setProfilePic("https://graph.facebook.com/" + facebookUserId + "/picture?height=500");
-                } else if(profile.getProviderId().equals("password")){
+                } else if (profile.getProviderId().equals("password")) {
+                    if (user.getPhotoUrl() == null) {
 
+                    } else {
+                        setProfilePic(user.getPhotoUrl().toString());
+                    }
                 }
+                userName.setText(user.getDisplayName());
+                userEmail.setText(user.getEmail());
+                userPhoto.setImageURI(user.getPhotoUrl());
+//                presentDialog("yeah",userPhoto.toString());
             }
 
-            userName.setText(user.getDisplayName());
-            userEmail.setText(user.getEmail());
-        }
-
 //  sign in option whether the user login with fb or email
-        for(UserInfo profile : user.getProviderData()) {
-            // check if the provider id matches "facebook.com"
-            if(profile.getProviderId().equals("facebook.com")) {
-                mProvider.setText("FB Linked");
-                mProvider.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        Toast.makeText(getApplicationContext(), "You are current linked your profile with facebook account", Toast.LENGTH_SHORT).show();
-
-                    }
-                });
-
-            } else {
-                if (profile.getProviderId().equals("password")) {
-                    mProvider.setText("Edit");
+            for (UserInfo profile : user.getProviderData()) {
+                // check if the provider id matches "facebook.com"
+                if (profile.getProviderId().equals("facebook.com")) {
+                    mProvider.setText("FB Linked");
                     mProvider.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            AlertDialog.Builder mBuilder = new AlertDialog.Builder(Dashboard.this);
-                            View mView = getLayoutInflater().inflate(R.layout.edit_info, null);
-                            mBuilder.setView(mView);
-                            AlertDialog dialog = mBuilder.create();
-                            dialog.show();
+                            Toast.makeText(getApplicationContext(), "You are current linked your profile with facebook account", Toast.LENGTH_SHORT).show();
                         }
                     });
                     userPhoto.setOnClickListener(new View.OnClickListener() {
+                        @Override
                         public void onClick(View view) {
-
-                            final List<String> listItems = new ArrayList<String>();
-                            listItems.add("Take Photo");
-                            listItems.add("Select from Photo Library");
-                            listItems.add("Cancel");
-
-                            final CharSequence[] Animals = listItems.toArray(new String[listItems.size()]);
-                            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(Dashboard.this);
-                            dialogBuilder.setTitle("Upload Profile Picture");
-                            dialogBuilder.setItems(Animals, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int item) {
-                                    String selectedText = Animals[item].toString();  //Selected item in listview
-                                    if(selectedText.equals("Take Photo"))
-                                    {
-                                        dispatchTakePictureIntent();
-                                    }
-                                    else if(selectedText.equals("Select from Photo Library"))
-                                    {
-                                        getImageFromAlbum();
-                                    }
-                                }
-                            });
-                            //Create alert dialog object via builder
-                            AlertDialog alertDialogObject = dialogBuilder.create();
-                            //Show the dialog
-                            alertDialogObject.show();
-
+                            changeprofile();
                         }
                     });
-                }
-            }
-        }
-
-        mAuthListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
-                if (user != null) {
-                    // User is signed in
                 } else {
-                    // User is signed out
+                    if (profile.getProviderId().equals("password")) {
+                        mProvider.setText("Edit");
+                        mProvider.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                AlertDialog.Builder mBuilder = new AlertDialog.Builder(Dashboard.this);
+                                View mView = getLayoutInflater().inflate(R.layout.edit_info, null);
+                                mBuilder.setView(mView);
+                                AlertDialog dialog = mBuilder.create();
+                                dialog.show();
+                            }
+                        });
+                        userPhoto.setOnClickListener(new View.OnClickListener() {
+                            public void onClick(View view) {
+                                changeprofile();
+                            }
+                        });
+                    }
                 }
             }
-        };
+
+            mAuthListener = new FirebaseAuth.AuthStateListener() {
+                @Override
+                public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                    FirebaseUser user = firebaseAuth.getCurrentUser();
+                    if (user != null) {
+                        // User is signed in
+                    } else {
+                        // User is signed out
+                    }
+                }
+            };
+
+            //Show notification
+            mNotification.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    showDialog();
+                }
+            });
+
+            // Logout
+            logoutBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    mAuth.getInstance().signOut();
+                    LoginManager.getInstance().logOut();
+                    Intent intent = new Intent(Dashboard.this, LoginActivity.class);
+                    startActivity(intent);
+                }
+            });
+
+            //setting
+            mSetting.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    AlertDialog.Builder mBuilder = new AlertDialog.Builder(Dashboard.this);
+                    View mView = getLayoutInflater().inflate(R.layout.setting, null);
+                    mBuilder.setView(mView);
+                    AlertDialog dialog = mBuilder.create();
+                    dialog.show();
+                }
+            });
 
 
-        //Show notification
-        mNotification.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showDialog();
-            }
-        });
-
-        // Logout
-        logoutBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mAuth.getInstance().signOut();
-                LoginManager.getInstance().logOut();
-                Intent intent = new Intent(Dashboard.this, LoginActivity.class);
-                startActivity(intent);
-            }
-        });
-
-        //setting
-        mSetting.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                AlertDialog.Builder mBuilder = new AlertDialog.Builder(Dashboard.this);
-                View mView = getLayoutInflater().inflate(R.layout.setting, null);
-                mBuilder.setView(mView);
-                AlertDialog dialog = mBuilder.create();
-                dialog.show();
-            }
-        });
-
-
-        //contact
-        mContact.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                final List<String> listItems = new ArrayList<String>();
-                listItems.add("Reception(+855 78 777 284)");
-                listItems.add("Reception(+855 96 2222 735)");
-                listItems.add("Cancel");
+            //contact
+            mContact.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    final List<String> listItems = new ArrayList<String>();
+                    listItems.add("Reception(+855 78 777 284)");
+                    listItems.add("Reception(+855 96 2222 735)");
+                    listItems.add("Cancel");
 //                String[] listItems = { "Take Photo", "Select from Photo Library", "Cancel"};
 
 
-                //Create sequence of items
-                final CharSequence[] Animals = listItems.toArray(new String[listItems.size()]);
-                AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(Dashboard.this);
-                dialogBuilder.setTitle("Contact");
-                dialogBuilder.setItems(Animals, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int item) {
-                        String selectedText = Animals[item].toString();  //Selected item in listview
-                        if(selectedText.equals("Reception(+855 78 777 284)")){
-                            Intent callIntent = new Intent(Intent.ACTION_CALL);
-                            callIntent.setData(Uri.parse("tel:0963377810"));
+                    //Create sequence of items
+                    final CharSequence[] Animals = listItems.toArray(new String[listItems.size()]);
+                    AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(Dashboard.this);
+                    dialogBuilder.setTitle("Contact");
+                    dialogBuilder.setItems(Animals, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int item) {
+                            String selectedText = Animals[item].toString();  //Selected item in listview
+                            if (selectedText.equals("Reception(+855 78 777 284)")) {
+                                Intent callIntent = new Intent(Intent.ACTION_CALL);
+                                callIntent.setData(Uri.parse("tel:078777284"));
 
-                            if (ActivityCompat.checkSelfPermission(Dashboard.this,
-                                    Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
-                                return;
-                            }
-                            startActivity(callIntent);
-                        }else if(selectedText.equals("Reception(+855 96 2222 735)")) {
-                            Intent callIntent = new Intent(Intent.ACTION_CALL);
-                            callIntent.setData(Uri.parse("tel:0963377810"));
+                                if (ActivityCompat.checkSelfPermission(Dashboard.this,
+                                        Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                                    return;
+                                }
+                                startActivity(callIntent);
+                            } else if (selectedText.equals("Reception(+855 96 2222 735)")) {
+                                Intent callIntent = new Intent(Intent.ACTION_CALL);
+                                callIntent.setData(Uri.parse("tel:0962222735"));
 
-                            if (ActivityCompat.checkSelfPermission(Dashboard.this,
-                                    Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
-                                return;
+                                if (ActivityCompat.checkSelfPermission(Dashboard.this,
+                                        Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                                    return;
+                                }
+                                startActivity(callIntent);
                             }
-                            startActivity(callIntent);
                         }
-                    }
-                });
-                //Create alert dialog object via builder
-                AlertDialog alertDialogObject = dialogBuilder.create();
-                //Show the dialog
-                alertDialogObject.show();
-            }
-        });
+                    });
+                    //Create alert dialog object via builder
+                    AlertDialog alertDialogObject = dialogBuilder.create();
+                    //Show the dialog
+                    alertDialogObject.show();
+                }
+            });
 
-        //Alert button sos
-        Button sos = (Button) findViewById(R.id.sos);
-        sos.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Creating alert Dialog with two Buttons
+            //Alert button sos
+            Button sos = (Button) findViewById(R.id.sos);
+            sos.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    // Creating alert Dialog with two Buttons
 
-                final AlertDialog.Builder alertDialog = new AlertDialog.Builder(Dashboard.this);
+                    final AlertDialog.Builder alertDialog = new AlertDialog.Builder(Dashboard.this);
 
-                // Setting Dialog Title
-                alertDialog.setTitle("Please help! ");
+                    // Setting Dialog Title
+                    alertDialog.setTitle("Please help! ");
 
-                // Setting Dialog Message
-                alertDialog.setMessage("I'm currently facing an emergency problem.");
+                    // Setting Dialog Message
+                    alertDialog.setMessage("I'm currently facing an emergency problem.");
 
-                // Setting Icon to Dialog
+                    // Setting Icon to Dialog
 //                alertDialog.setIcon(R.drawable.delete);
 
-                // Setting Positive "Yes" Button
-                AlertDialog.Builder confirm = alertDialog.setPositiveButton("Confirm",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                // Write your code here to execute after dialog
+                    // Setting Positive "Yes" Button
+                    AlertDialog.Builder confirm = alertDialog.setPositiveButton("Confirm",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // Write your code here to execute after dialog
 //                                Toast.makeText(getApplicationContext(), "You clicked on Confirm", Toast.LENGTH_SHORT).show();
-                                // Emergency sos sending sms
-                                String SENT = "SMS_SENT";
-                                String DELIVERED = "SMS_DELIVERED";
+                                    // Emergency sos sending sms
+                                    String SENT = "SMS_SENT";
+                                    String DELIVERED = "SMS_DELIVERED";
 
-                                PendingIntent sentPI = PendingIntent.getBroadcast(getApplicationContext(), 0,
-                                        new Intent(SENT), 0);
+                                    PendingIntent sentPI = PendingIntent.getBroadcast(getApplicationContext(), 0,
+                                            new Intent(SENT), 0);
 
-                                PendingIntent deliveredPI = PendingIntent.getBroadcast(getApplicationContext(), 0,
-                                        new Intent(DELIVERED), 0);
+                                    PendingIntent deliveredPI = PendingIntent.getBroadcast(getApplicationContext(), 0,
+                                            new Intent(DELIVERED), 0);
 
-                                //---when the SMS has been sent---
-                                registerReceiver(new BroadcastReceiver(){
-                                    @Override
-                                    public void onReceive(Context arg0, Intent arg1) {
-                                        switch (getResultCode())
-                                        {
-                                            case Activity.RESULT_OK:
-                                                Toast.makeText(getBaseContext(), "SMS sent",
-                                                        Toast.LENGTH_SHORT).show();
-                                                break;
-                                            case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
-                                                Toast.makeText(getBaseContext(), "Generic failure",
-                                                        Toast.LENGTH_SHORT).show();
-                                                break;
-                                            case SmsManager.RESULT_ERROR_NO_SERVICE:
-                                                Toast.makeText(getBaseContext(), "No service",
-                                                        Toast.LENGTH_SHORT).show();
-                                                break;
-                                            case SmsManager.RESULT_ERROR_NULL_PDU:
-                                                Toast.makeText(getBaseContext(), "Null PDU",
-                                                        Toast.LENGTH_SHORT).show();
-                                                break;
-                                            case SmsManager.RESULT_ERROR_RADIO_OFF:
-                                                Toast.makeText(getBaseContext(), "Radio off",
-                                                        Toast.LENGTH_SHORT).show();
-                                                break;
+                                    //---when the SMS has been sent---
+                                    registerReceiver(new BroadcastReceiver() {
+                                        @Override
+                                        public void onReceive(Context arg0, Intent arg1) {
+                                            switch (getResultCode()) {
+                                                case Activity.RESULT_OK:
+                                                    Toast.makeText(getBaseContext(), "SMS sent",
+                                                            Toast.LENGTH_SHORT).show();
+                                                    break;
+                                                case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
+                                                    Toast.makeText(getBaseContext(), "Generic failure",
+                                                            Toast.LENGTH_SHORT).show();
+                                                    break;
+                                                case SmsManager.RESULT_ERROR_NO_SERVICE:
+                                                    Toast.makeText(getBaseContext(), "No service",
+                                                            Toast.LENGTH_SHORT).show();
+                                                    break;
+                                            }
                                         }
-                                    }
-                                }, new IntentFilter(SENT));
+                                    }, new IntentFilter(SENT));
 
-                                //---when the SMS has been delivered---
-                                registerReceiver(new BroadcastReceiver(){
-                                    @Override
-                                    public void onReceive(Context arg0, Intent arg1) {
-                                        switch (getResultCode())
-                                        {
-                                            case Activity.RESULT_OK:
-                                                Toast.makeText(getBaseContext(), "SMS delivered",
-                                                        Toast.LENGTH_SHORT).show();
-                                                break;
-                                            case Activity.RESULT_CANCELED:
-                                                Toast.makeText(getBaseContext(), "SMS not delivered",
-                                                        Toast.LENGTH_SHORT).show();
-                                                break;
+                                    //---when the SMS has been delivered---
+                                    registerReceiver(new BroadcastReceiver() {
+                                        @Override
+                                        public void onReceive(Context arg0, Intent arg1) {
+                                            switch (getResultCode()) {
+                                                case Activity.RESULT_OK:
+                                                    Toast.makeText(getBaseContext(), "SMS delivered",
+                                                            Toast.LENGTH_SHORT).show();
+                                                    break;
+                                                case Activity.RESULT_CANCELED:
+                                                    Toast.makeText(getBaseContext(), "SMS not delivered",
+                                                            Toast.LENGTH_SHORT).show();
+                                                    break;
+                                            }
                                         }
+                                    }, new IntentFilter(DELIVERED));
+
+                                    SmsManager sms = SmsManager.getDefault();
+                                    if (statusCode == 0)
+                                        sms.sendTextMessage(phoneNumber, null, message, sentPI, deliveredPI);
+                                    else if (statusCode == 1) {
+                                        String title = "Off Kirirom Mode";
+                                        presentDialog(title, "This function is not accessible outside kirirom area.");
+                                    } else if (statusCode == 2) {
+                                        String title = "Unidentified";
+                                        presentDialog(title, "Location failed. Turn on Location Service to Determine your current location for App Mode: \\n Setting > Location");
+                                    } else {
+                                        String title = "Error";
+                                        presentDialog(title, "Invalid");
+
                                     }
-                                }, new IntentFilter(DELIVERED));
+                                }
+                            });
+                    // Setting Negative "NO" Button
+                    alertDialog.setNegativeButton("Cancel",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // Write your code here to execute after dialog
+                                    Toast.makeText(getApplicationContext(), "You clicked on Cancel", Toast.LENGTH_SHORT).show();
+                                    dialog.cancel();
+                                }
+                            });
+                    // Showing Alert Message
+                    alertDialog.show();
+                }
+            });
+        }
+    }
 
-                                SmsManager sms = SmsManager.getDefault();
-                                if(statusCode == 0)
-                                    sms.sendTextMessage(phoneNumber, null, message, sentPI, deliveredPI);
-                                else if(statusCode == 1)
-                                {
-                                    String title = "Off Kirirom Mode";
-                                    presentDialog(title, "This function is not accessible outside kirirom area.");
-                                }
-                                else if(statusCode == 2)
-                                {
-                                    String title = "Unidentified";
-                                    presentDialog(title, "Location failed. Turn on Location Service to Determine your current location for App Mode: \\n Setting > Location");
-                                }
-                                else{
-                                    String title = "Error";
-                                    presentDialog(title, "Invalid");
+    private void changeprofile(){
+        final List<String> listItems = new ArrayList<String>();
+        listItems.add("Take Photo");
+        listItems.add("Select from Photo Library");
+        listItems.add("Cancel");
 
-                                }
-                            }
-                        });
-                // Setting Negative "NO" Button
-                alertDialog.setNegativeButton("Cancel",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog,	int which) {
-                                // Write your code here to execute after dialog
-                                Toast.makeText(getApplicationContext(), "You clicked on Cancel", Toast.LENGTH_SHORT).show();
-                                dialog.cancel();
-                            }
-                        });
-                // Showing Alert Message
-                alertDialog.show();
+        final CharSequence[] Animals = listItems.toArray(new String[listItems.size()]);
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(Dashboard.this);
+        dialogBuilder.setTitle("Upload Profile Picture");
+        dialogBuilder.setItems(Animals, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int item) {
+                String selectedText = Animals[item].toString();  //Selected item in listview
+                if (selectedText.equals("Take Photo")) {
+                    dispatchTakePictureIntent();
+                } else if (selectedText.equals("Select from Photo Library")) {
+                    getImageFromAlbum();
+                }
             }
         });
+        //Create alert dialog object via builder
+        AlertDialog alertDialogObject = dialogBuilder.create();
+        //Show the dialog
+        alertDialogObject.show();
+
     }
 
     private void setProfilePic(String photoUrl){
@@ -690,7 +689,6 @@ public class Dashboard extends AppCompatActivity {
                 bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
                 RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(bitmap);
                 userPhoto.setImageDrawable(drawable);
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -700,6 +698,24 @@ public class Dashboard extends AppCompatActivity {
                 Bitmap photo = (Bitmap) data.getExtras().get("data");
                 RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(photo);
                 userPhoto.setImageDrawable(drawable);
+
+//                Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
+//                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+//                thumbnail.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
+//                File destination = new File(Environment.getExternalStorageDirectory(),
+//                        System.currentTimeMillis() + ".jpg");
+//                FileOutputStream fo;
+//                try {
+//                    destination.createNewFile();
+//                    fo = new FileOutputStream(destination);
+//                    fo.write(bytes.toByteArray());
+//                    fo.close();
+//                } catch (FileNotFoundException e) {
+//                    e.printStackTrace();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//                userPhoto.setImageBitmap(thumbnail);
             }
         }
         upload();
@@ -707,30 +723,81 @@ public class Dashboard extends AppCompatActivity {
 
     //upload user profile photo to firebase
     private void upload() {
-        userPhoto.setDrawingCacheEnabled(true);
-        userPhoto.buildDrawingCache();
-        Bitmap mbitmap = userPhoto.getDrawingCache();
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        mbitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-        byte[] mdata = baos.toByteArray();
-        FirebaseStorage storage=FirebaseStorage.getInstance();
-        StorageReference reference=storage.getReferenceFromUrl("gs://vkclub-c861b.appspot.com/");
-        StorageReference imagesRef=reference.child("userprofile-photo/").child(user.getEmail());
-        UploadTask uploadTask = imagesRef.putBytes(mdata);
-        uploadTask.addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Toast.makeText(Dashboard.this, "Error : "+e.toString(), Toast.LENGTH_SHORT).show();
-            }
-        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                Toast.makeText(Dashboard.this, "Uploading Done!!!", Toast.LENGTH_SHORT).show();
 
-                Uri downloadUri = taskSnapshot.getDownloadUrl();
-                Picasso.with(Dashboard.this).load(downloadUri).into(userPhoto);
-            }
-        });
+        if(userPhoto != null){
+            userPhoto.setDrawingCacheEnabled(true);
+            userPhoto.buildDrawingCache();
+            Bitmap mbitmap = userPhoto.getDrawingCache();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            mbitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+            byte[] mdata = baos.toByteArray();
+            StorageReference reference=storage.getReferenceFromUrl("gs://vkclub-c861b.appspot.com/");
+            StorageReference imagesRef=reference.child("userprofile-photo/").child(user.getDisplayName()+"_"+user.getUid());
+            UploadTask uploadTask = imagesRef.putBytes(mdata);
+            uploadTask.addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Toast.makeText(Dashboard.this, "Error : "+e.toString(), Toast.LENGTH_SHORT).show();
+
+                }
+            }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    Toast.makeText(Dashboard.this, "Uploading Done!!!", Toast.LENGTH_SHORT).show();
+
+                    Uri downloadUri = taskSnapshot.getDownloadUrl();
+                    UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder()
+                            .setPhotoUri(downloadUri)
+                            .build();
+                    user.updateProfile(profileUpdate)
+                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        presentDialog("hiii","heeeee");
+                                    }
+                                }
+                            });
+
+//                    userPhoto.setDrawingCacheEnabled(true);
+//                    userPhoto.buildDrawingCache();
+//                    Bitmap mbitmap = userPhoto.getDrawingCache();
+//                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//                    mbitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+//                    byte[] mdata = baos.toByteArray();
+//                    StorageReference reference=storage.getReferenceFromUrl("gs://vkclub-c861b.appspot.com/");
+//                    StorageReference imagesRef=reference.child("userprofile-photo/").child(user.getDisplayName()+"_"+user.getUid());
+//                    UploadTask uploadTask = imagesRef.putBytes(mdata);
+//                    uploadTask.addOnFailureListener(new OnFailureListener() {
+//                        @Override
+//                        public void onFailure(@NonNull Exception e) {
+//                            Toast.makeText(Dashboard.this, "Error : "+e.toString(), Toast.LENGTH_SHORT).show();
+//                        }
+//                    }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+//                        @Override
+//                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+//                            Toast.makeText(Dashboard.this, "Uploading Done!!!", Toast.LENGTH_SHORT).show();
+//
+//                            Uri downloadUri = taskSnapshot.getDownloadUrl();
+//                            UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder()
+//                                    .setPhotoUri(downloadUri)
+//                                    .build();
+//                            user.updateProfile(profileUpdate)
+//                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+//                                        @Override
+//                                        public void onComplete(@NonNull Task<Void> task) {
+//                                            if (task.isSuccessful()) {
+//                                                presentDialog("hiii","heeeee");
+//                                            }
+//                                        }
+//                                    });
+//                        }
+//                    });
+//                    Uri downloadUri = taskSnapshot.getDownloadUrl();
+//                    Picasso.with(Dashboard.this).load(downloadUri).into(userPhoto);
+                }
+            });
+        }
     }
 
     //make user profile photo circular
@@ -741,7 +808,7 @@ public class Dashboard extends AppCompatActivity {
 
         int bitmapRadius = Math.min(bitmapWidth,bitmapHeight)/2;
 
-        int bitmapSquareWidth = Math.min(bitmapWidth,bitmapHeight/2);
+        int bitmapSquareWidth = Math.min(bitmapWidth,bitmapHeight);
 
         int newBitmapSquareWidth = bitmapSquareWidth+borderWidthHalf;
         Bitmap roundedBitmap = Bitmap.createBitmap(newBitmapSquareWidth,newBitmapSquareWidth,Bitmap.Config.ARGB_8888);
@@ -770,7 +837,6 @@ public class Dashboard extends AppCompatActivity {
         return roundedBitmapDrawable;
     }
 
-
     public void showDialog() {
         Notification newFragment = new Notification();
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -790,6 +856,5 @@ public class Dashboard extends AppCompatActivity {
                     .addToBackStack(null).commit();
         }
     }
-
 
     }

@@ -3,11 +3,13 @@ package com.example.admin.vkclub;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -25,6 +27,8 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 
 import static com.example.admin.vkclub.R.id.emailValidation;
 import static com.example.admin.vkclub.R.id.nameValidation;
@@ -129,22 +133,37 @@ public class CreateAccount extends AppCompatActivity {
                 }
 
                 if (nameStatus && emailStatus && passwordStatus && confirmpassStatus) {
-                    createAccount(emailValue, passwordValue);
+                    createAccount(emailValue, passwordValue,nameValue);
                 }
             }
         });
     }
 
-    private void createAccount(final String email, final String password) {
+    private void createAccount(final String email, final String password,final String nameValue) {
         spinner.setVisibility(View.VISIBLE);
         statusText.setText("Processing...");
         mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
+                    FirebaseUser user = mAuth.getCurrentUser();
+                    UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder()
+                            .setDisplayName(nameValue)
+                            .build();
+                    user.updateProfile(profileUpdate)
+                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        presentDialog("hiii","heeeee");
+                                    }
+                                }
+                            });
                     // create account success
                     // log user in to the dashboard
                     login(email, password);
+
+
                 } else {
                     spinner.setVisibility(View.GONE);
                     statusText.setText("");
