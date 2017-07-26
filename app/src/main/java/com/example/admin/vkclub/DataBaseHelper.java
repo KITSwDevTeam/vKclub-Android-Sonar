@@ -13,6 +13,7 @@ import android.util.Log;
 
 class DataBaseHelper extends SQLiteOpenHelper {
     private static final String TAG = "DatabaseHelper";
+
     private static final String TABLE_NAME = "history_table";
     private static final String ID = "ID";
     private static final String EXTENSION = "extension";
@@ -21,6 +22,8 @@ class DataBaseHelper extends SQLiteOpenHelper {
     private static final String TIME = "time";
     private static final String STATUS = "status";
 
+    private static final String NOTIFICATION_TABLE = "notification_table";
+    private static final String MESSAGE = "message";
 
     public DataBaseHelper(Context context) {
         super(context, TABLE_NAME, null, 1);
@@ -30,13 +33,54 @@ class DataBaseHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         String createTable = "CREATE TABLE " + TABLE_NAME + " (ID INTEGER PRIMARY KEY AUTOINCREMENT, " + EXTENSION + " TEXT, " +
                 USERNAME + " TEXT, " + DURATION + " TEXT, " + TIME + " TEXT, " + STATUS + " TEXT)";
+        String createNotification = "CREATE TABLE " + NOTIFICATION_TABLE + " (ID INTEGER PRIMARY KEY AUTOINCREMENT, " + MESSAGE + " TEXT)";
         db.execSQL(createTable);
+        db.execSQL(createNotification);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP IF TABLE EXISTS " + TABLE_NAME);
+        db.execSQL("DROP IF TABLE EXISTS " + NOTIFICATION_TABLE);
         onCreate(db);
+    }
+
+    public boolean addNotificationData(String message){
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MESSAGE, message);
+
+        Log.d(TAG, "addData: Adding to NOTIFICATION_TABLE");
+        long result = db.insert(NOTIFICATION_TABLE, null, contentValues);
+
+        // if data are inserted incorrectly it will return -1
+        if (result == -1){
+            return false;
+        }else {
+            return true;
+        }
+    }
+
+    public Cursor getData(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        String query = "SELECT * FROM " + TABLE_NAME;
+        Cursor data = db.rawQuery(query, null);
+        return data;
+    }
+
+    public Cursor getNotificationID(String message){
+        SQLiteDatabase db = this.getWritableDatabase();
+        String query = "SELECT " + ID + " FROM " + NOTIFICATION_TABLE + " WHERE " + MESSAGE + " = '" + message + "'";
+        Cursor data = db.rawQuery(query, null);
+        return data;
+    }
+
+    public void deleteNotificationItem(int id, String message){
+        SQLiteDatabase db = this.getWritableDatabase();
+        String query = "DELETE FROM " + NOTIFICATION_TABLE + " WHERE " + ID + "='" + id + "'" + " AND " + MESSAGE + " = '" + message + "'";
+        Log.d(TAG, "deleteHistory: query " + query);
+        Log.d(TAG, "deleteHistory: Deleting " + id + " " + message + " from database.");
+        db.execSQL(query);
     }
 
     public boolean addData(String extension, String username, String duration, String time, String callstatus){
@@ -59,11 +103,19 @@ class DataBaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    public Cursor getData(){
+    public Cursor getNotificationData(){
         SQLiteDatabase db = this.getWritableDatabase();
-        String query = "SELECT * FROM " + TABLE_NAME;
+        String query = "SELECT * FROM " + NOTIFICATION_TABLE;
         Cursor data = db.rawQuery(query, null);
         return data;
+    }
+
+    public void deleteAllNotification(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        String query = "DELETE * FROM " + NOTIFICATION_TABLE;
+        Log.d(TAG, "deleteHistory: query " + query);
+        Log.d(TAG, "deleteHistory: Deleting all from " + NOTIFICATION_TABLE);
+        db.execSQL(query);
     }
 
     public Cursor getItemID(String name){

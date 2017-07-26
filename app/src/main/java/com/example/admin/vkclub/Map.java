@@ -75,10 +75,6 @@ public class Map extends AppCompatActivity implements OnMapReadyCallback,
 
         mFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mFragment.getMapAsync(this);
-
-        IntentFilter filter = new IntentFilter();
-        filter.addAction("android.SipDemo.INCOMING_CALL");
-        this.registerReceiver(callReceiver, filter);
     }
 
     @Override

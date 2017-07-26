@@ -1,6 +1,8 @@
 package com.example.admin.vkclub;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.sip.SipAudioCall;
@@ -22,6 +24,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.model.Dash;
 
@@ -61,14 +64,42 @@ public class Dailer extends Fragment{
             }
         });
 
+        backSpace.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                numEditor.setText("");
+                return true;
+            }
+        });
+
         callBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent in = new Intent(getContext(), Calling.class);
-                in.putExtra("STATE", "DAILING");
-                in.putExtra("CALLEE", numEditor.getText().toString());
-                startActivity(in);
-                dashboard.initiateCall(numEditor.getText().toString());
+                if (dashboard.reg_status == 1){
+                    Intent in = new Intent(getContext(), Calling.class);
+                    in.putExtra("STATE", "DAILING");
+                    in.putExtra("CALLEE", numEditor.getText().toString());
+                    startActivity(in);
+                    dashboard.initiateCall(numEditor.getText().toString());
+                }else if (dashboard.reg_status == 2){
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                    builder.setTitle("Error");
+                    builder.setMessage("Either you are not connected to vKirirom network or server is not responding.\nPlease restart the app or contact the support team.\nThank you for using Vkclub.");
+                    builder.setCancelable(true);
+
+                    builder.setPositiveButton(
+                            "Yes",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+
+                    AlertDialog alert = builder.create();
+                    alert.show();
+                }else {
+                    Toast.makeText(getContext(), "Error", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 

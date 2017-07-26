@@ -2,8 +2,12 @@ package com.example.admin.vkclub;
 
 import android.*;
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.FragmentManager;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -25,6 +29,7 @@ import android.provider.CallLog;
 import android.provider.Settings;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.telecom.Call;
 import android.util.Log;
@@ -64,7 +69,7 @@ public class IncomingCallReceiver extends BroadcastReceiver {
     protected ContentResolver contentResolver;
     Intent in;
     Context context;
-    Calling calling = (Calling) Calling.getAppContext();
+    Calling calling;
 
     private Runnable callDuration;
 
@@ -74,6 +79,7 @@ public class IncomingCallReceiver extends BroadcastReceiver {
         SipAudioCall incomingCall = null;
         this.context = context;
         dashboardActivity = (Dashboard) this.context;
+        calling = (Calling) Calling.getAppContext();
         System.out.println("Incoming call Receiver---------------------   " + dashboardActivity);
 
         try{
@@ -97,16 +103,15 @@ public class IncomingCallReceiver extends BroadcastReceiver {
                     System.out.println("Call ended Incoming Call Receiver =========================");
                     T.cancel();
                     System.out.println("Timer cancel....");
-                    registerCallLog(contentResolver, dashboardActivity.audioCall.getPeerProfile().getUserName(), "180", CallLog.Calls.INCOMING_TYPE, 1);
-                    Calling.activity.finish();
+                    Activity callingActivity = Calling.getActivity();
+                    callingActivity.finish();
                     calling.player.stop();
-
-
                 }
             };
 
             System.out.println("Ringing...");
             in = new Intent(this.context, Calling.class);
+            in.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             in.putExtra("STATE", "RECEIVING");
             this.context.startActivity(in);
             incomingCall = dashboardActivity.mSipManager.takeAudioCall(intent, listener);

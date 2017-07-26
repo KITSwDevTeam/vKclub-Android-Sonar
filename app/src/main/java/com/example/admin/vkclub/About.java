@@ -60,16 +60,6 @@ public class About extends AppCompatActivity {
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorStatusBar));
         }
-//        toolbar.setTitle("About us");
-//        toolbar.setTitleTextColor(ContextCompat.getColor(this, R.color.colorWhite));
-//        toolbar.setNavigationIcon(R.drawable.ic_left_arrow);
-//        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                finish();
-//            }
-//        });
-
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());

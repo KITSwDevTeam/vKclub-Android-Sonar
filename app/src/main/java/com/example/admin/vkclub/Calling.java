@@ -19,7 +19,7 @@ import java.util.Calendar;
 
 public class Calling extends AppCompatActivity {
 
-    MediaPlayer player;
+    public static MediaPlayer player;
     Dashboard dashboard;
     ImageButton ansBtn, decBtn, toggleSpeaker, toggleMute;
     TextView callStatus, peerProfile;
@@ -32,12 +32,17 @@ public class Calling extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
     private static String callDuration;
+    private static boolean answerFlag = false;
 
     DataBaseHelper mDatabaseHelper;
     Calendar calendar;
     String callerId;
     String callerName;
     String currentDateTime;
+
+    @Override
+    public void onBackPressed() {
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +54,7 @@ public class Calling extends AppCompatActivity {
         activity = this;
         Calling.context = this;
         dashboard = (Dashboard) Dashboard.getAppContext();
+        player = MediaPlayer.create(this, Settings.System.DEFAULT_RINGTONE_URI);
         callStatus = (TextView) findViewById(R.id.call_status);
         peerProfile = (TextView) findViewById(R.id.peer);
         ansBtn = (ImageButton) findViewById(R.id.answer);
@@ -57,7 +63,6 @@ public class Calling extends AppCompatActivity {
         toggleMute = (ImageButton) findViewById(R.id.mute);
 
         if(getIntent().getExtras().getString("STATE").equals("RECEIVING")){
-            player = MediaPlayer.create(this, Settings.System.DEFAULT_RINGTONE_URI);
             player.start();
             toggleSpeaker.setVisibility(View.GONE);
             toggleMute.setVisibility(View.GONE);
@@ -80,6 +85,7 @@ public class Calling extends AppCompatActivity {
         ansBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                answerFlag = true;
                 player.stop();
                 toggleMute.setVisibility(View.VISIBLE);
                 toggleSpeaker.setVisibility(View.VISIBLE);
@@ -163,6 +169,31 @@ public class Calling extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        System.out.println("ON RESUME CALLING");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        System.out.println("ON PAUSE");
+        player.stop();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        System.out.println("ON START");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        System.out.println("ON STOP");
+    }
+
     public static Context getAppContext(){
         return Calling.context;
     }
@@ -221,5 +252,9 @@ public class Calling extends AppCompatActivity {
                     + String.format("%02d", calendar.get(Calendar.HOUR)) + ":"
                     + String.format("%02d", calendar.get(Calendar.MINUTE)) + " PM";
         return currentDateTime;
+    }
+
+    public static Activity getActivity(){
+        return Calling.activity;
     }
 }

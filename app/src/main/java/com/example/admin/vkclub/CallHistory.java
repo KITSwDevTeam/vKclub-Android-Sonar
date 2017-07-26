@@ -27,7 +27,6 @@ import java.util.ArrayList;
 
 public class CallHistory extends Fragment {
     private ListView mListView;
-    static final String[] MIM = new String[]{};
 
     private static final String TAG = "CallHistory";
     DataBaseHelper mDataBaseHelper;
@@ -116,33 +115,8 @@ public class CallHistory extends Fragment {
                     }
                 });
                 builder.show();
-
-//                Cursor data = mDataBaseHelper.getItemID(name); // get the id associated with that name
-//                int itemID = -1;
-//                while (data.moveToNext()){
-//                    itemID = data.getInt(0);
-//                }
-//
-//                if (itemID > -1){
-//                    Log.d(TAG, "onItemClick: The ID is: " + itemID);
-//                    Intent in = new Intent(getContext(), Historydetail.class);
-//                    in.putExtra("id", itemID);
-//                    in.putExtra("name", name);
-//                    startActivity(in);
-//                }else {
-//                    toastMessage("No ID associated with that name");
-//                }
             }
         });
-
-//        mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener(){
-//            @Override
-//            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-//                final String extension = parent.getItemAtPosition(position).toString();
-//                Log.d(TAG, "onItemLongClick: You Clicked on " + extension);
-//                return true;
-//            }
-//        });
     }
 
     private void toastMessage(String message){
