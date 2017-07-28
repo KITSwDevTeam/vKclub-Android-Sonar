@@ -1,5 +1,6 @@
 package com.example.admin.vkclub;
 
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -7,6 +8,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.widget.ImageView;
@@ -24,6 +26,10 @@ public class BitmapFromUrl extends AsyncTask<String, Void, Bitmap> {
 
     ImageView bmImage;
     private Resources mResources;
+
+    DataBaseHelper mDataBaseHelper;
+    SharedPreferences prefs;
+    String imageBlob;
 
     public BitmapFromUrl(ImageView bmImage) {
         this.bmImage = bmImage;
@@ -46,8 +52,27 @@ public class BitmapFromUrl extends AsyncTask<String, Void, Bitmap> {
     }
 
     protected void onPostExecute(Bitmap result) {
-        RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(result);
-        bmImage.setImageDrawable(drawable);
+        prefs = PreferenceManager.getDefaultSharedPreferences(Dashboard.getAppContext());
+        DbBitmapUtility dbBitmapUtility = new DbBitmapUtility();
+        imageBlob = prefs.getString("get_blob", "");
+        if (imageBlob.length() == 0){
+            if (result != null){
+                SharedPreferences.Editor editor = prefs.edit();
+                String encodedString = dbBitmapUtility.getString(result);
+                editor.putString("get_blob", encodedString);
+                editor.commit();
+                RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(result);
+                bmImage.setImageDrawable(drawable);
+            }else {
+                System.out.println("Cannot get bitmap from url" + "Null");
+            }
+        }else {
+            System.out.println("Image Blob Exist");
+            byte[] imageAsBytes = dbBitmapUtility.getBytesFromString(imageBlob);
+            Bitmap resultBitmap = dbBitmapUtility.getImage(imageAsBytes);
+            RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(resultBitmap);
+            bmImage.setImageDrawable(drawable);
+        }
     }
 
     private RoundedBitmapDrawable createRoundedBitmapDrawableWithBorder(Bitmap mBitmap) {
@@ -72,7 +97,7 @@ public class BitmapFromUrl extends AsyncTask<String, Void, Bitmap> {
         // Initializing a new Paint instance to draw circular border
         Paint borderPaint = new Paint();
         borderPaint.setStyle(Paint.Style.STROKE);
-        borderPaint.setStrokeWidth(borderWidthHalf*4);
+        borderPaint.setStrokeWidth(borderWidthHalf);
         borderPaint.setColor(Color.GREEN);
 
         canvas.drawCircle(canvas.getWidth()/2, canvas.getWidth()/2, newBitmapSquareWidth/2, borderPaint);

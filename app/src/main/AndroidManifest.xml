@@ -6,27 +6,26 @@
 
     <receiver
         android:name=".IncomingCallReceiver"
-        android:label="Call Receiver">
-    </receiver>
+        android:label="Call Receiver" />
 
     <!-- To auto-complete the email text field in the login form with the user's emails -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.USE_SIP" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.READ_PROFILE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
-    <uses-permission android:name="android.permission.USE_SIP" />
-    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
@@ -34,6 +33,8 @@
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <uses-permission android:name="android.permission.WRITE_CALL_LOG" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <uses-feature
         android:name="android.hardware.sip.voip"
@@ -46,6 +47,10 @@
         android:required="true" />
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
 
     <application
         android:allowBackup="true"
@@ -105,6 +110,9 @@
             android:name=".Dashboard"
             android:theme="@style/noActionBar" />
         <activity
+            android:name=".EditInfo"
+            android:theme="@style/noActionBar" />
+        <activity
             android:name=".ForgetPassword"
             android:theme="@style/noActionBar" />
 
@@ -121,7 +129,6 @@
             android:name=".About"
             android:label="@string/title_activity_about"
             android:theme="@style/AppTheme.NoActionBar" />
-
         <activity
             android:name=".Voip"
             android:label="@string/title_activity_voip"
@@ -138,9 +145,13 @@
             </intent-filter>
         </service>
 
-        <activity android:name=".DialogActivity"
-            android:theme="@style/NoTitleDialog"
-            android:excludeFromRecents="true"></activity>
+        <activity
+            android:name=".DialogActivity"
+            android:excludeFromRecents="true"
+            android:theme="@style/NoTitleDialog" />
+        <activity android:name=".CropImage" />
+        <activity android:name=".WelcomeActivity"
+            android:theme="@style/noActionBar"></activity>
     </application>
 
 </manifest>

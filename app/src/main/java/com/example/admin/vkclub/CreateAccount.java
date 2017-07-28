@@ -3,11 +3,13 @@ package com.example.admin.vkclub;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -26,6 +28,7 @@ import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 
 import static com.example.admin.vkclub.R.id.emailValidation;
 import static com.example.admin.vkclub.R.id.nameValidation;
@@ -130,13 +133,13 @@ public class CreateAccount extends AppCompatActivity {
                 }
 
                 if (nameStatus && emailStatus && passwordStatus && confirmpassStatus) {
-                    createAccount(emailValue, passwordValue);
+                    createAccount(emailValue, passwordValue,nameValue);
                 }
             }
         });
     }
 
-    private void createAccount(final String email, final String password) {
+    private void createAccount(final String email, final String password,final String nameValue) {
         spinner.setVisibility(View.VISIBLE);
         statusText.setText("Processing...");
         mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -144,11 +147,12 @@ public class CreateAccount extends AppCompatActivity {
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
                     FirebaseUser user = mAuth.getCurrentUser();
+                    UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder()
+                            .setDisplayName(nameValue)
+                            .build();
+                    user.updateProfile(profileUpdate);
                     sendEmailVerification(user);
                     // create account success
-                    // log user in to the dashboard
-                    //login(email, password);
-
                 } else {
                     spinner.setVisibility(View.GONE);
                     statusText.setText("");
@@ -166,41 +170,6 @@ public class CreateAccount extends AppCompatActivity {
                             task.getException();
                         } catch (Exception e) {
                             presentDialog("SignUp Failed..", e.getMessage());
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    private void login(String email, String password) {
-        statusText.setText("Logging in... ");
-        mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                if (task.isSuccessful()) {
-                    // login successful...redirect user to the dashboard
-                    Intent intent = new Intent(CreateAccount.this, Dashboard.class);
-                    startActivity(intent);
-                    finish();
-                } else {
-                    // handle error
-                    spinner.setVisibility(View.GONE);
-                    statusText.setText("");
-                    if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
-                        // Invalid password
-                        presentDialog("Login Failed..", "Invalid Password");
-                    } else if (task.getException() instanceof FirebaseAuthInvalidUserException) {
-                        // Invalid Email id
-                        presentDialog("Login Failed..", "Invalid Email");
-                    } else if (task.getException() instanceof FirebaseNetworkException) {
-                        // No internet Connection
-                        presentDialog("Login Failed..", "No network coverage");
-                    } else {
-                        try {
-                            throw task.getException();
-                        } catch (Exception e) {
-                            presentDialog("Login Failed..", e.getMessage());
                         }
                     }
                 }

@@ -86,15 +86,7 @@
           "client_type": 1,
           "android_info": {
             "package_name": "com.example.admin.vkclub",
-            "certificate_hash": "b65036845dd1e61a9ff0f3c8a47b6b444c16c594"
-          }
-        },
-        {
-          "client_id": "929511612295-in5diahkk00ds1psu4k5u251hm8kurm6.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.example.admin.vkclub",
-            "certificate_hash": "c5479992656baa0fd914192eb017ac40548a2d4d"
+            "certificate_hash": "b9680d4a171d7712fba55e3484c4b52c08f55768"
           }
         },
         {

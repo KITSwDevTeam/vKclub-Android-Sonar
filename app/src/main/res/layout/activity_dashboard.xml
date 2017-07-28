@@ -191,12 +191,12 @@
 
             <!--Place your ImageView here-->
             <ImageView
-                android:id="@+id/userprofile"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:id="@+id/userphoto"
+                android:layout_width="100sp"
+                android:layout_height="100sp"
                 android:layout_gravity="center_horizontal"
                 android:background="@drawable/profile_background"
-                android:src="@drawable/ic_user" />
+                android:src="@drawable/ic_man" />
                 <!--app:border_color="#EEEEEE"-->
                 <!--app:border_width="4dp"-->
 
@@ -220,9 +220,9 @@
                 android:layout_gravity="center_horizontal"/>
 
             <Button
+                android:id="@+id/provider"
                 android:layout_width="70dp"
                 android:layout_height="20dp"
-                android:text="FB Linked"
                 android:textColor="@color/colorWhite"
                 android:textAllCaps="false"
                 android:textSize="10dp"
@@ -255,6 +255,7 @@
                     android:id="@+id/contact"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
+                    android:text="Contact us"
                     android:layout_gravity="center"
                     android:layout_marginTop="1dp"
                     android:background="@drawable/sidebar_module"
@@ -262,7 +263,6 @@
                     android:drawableRight="@drawable/ic_play_symbol"
                     android:paddingLeft="20dp"
                     android:paddingRight="10dp"
-                    android:text="Contact"
                     android:textAllCaps="false"
                     android:textColor="@color/colorWhite" />
 

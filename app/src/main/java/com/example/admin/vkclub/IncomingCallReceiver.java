@@ -151,9 +151,6 @@ public class IncomingCallReceiver extends BroadcastReceiver {
                 System.out.println("PINGING Incoming Call Receiver");
                 break;
             case SipSession.State.READY_TO_CALL:
-                if(event.equals("onCallEnded")){
-                    dashboardActivity.dismissReceiveCallDialog();
-                }
                 System.out.println("READY_TO_CALL Incoming Call Receiver");
                 break;
             case SipSession.State.REGISTERING:
