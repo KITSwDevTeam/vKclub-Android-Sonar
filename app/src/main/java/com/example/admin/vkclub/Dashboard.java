@@ -577,8 +577,8 @@ public class Dashboard extends AppCompatActivity {
 //        }
 
         try {
-            SipProfile.Builder builder = new SipProfile.Builder("10009", "192.168.7.251");
-            builder.setPassword("A2apbx10009");
+            SipProfile.Builder builder = new SipProfile.Builder("10018", "192.168.7.251");
+            builder.setPassword("A2apbx10018");
             builder.setPort(sipPort);
             builder.setProtocol("UDP");
             builder.setAutoRegistration(true);
@@ -623,11 +623,13 @@ public class Dashboard extends AppCompatActivity {
                     @Override
                     public void onRegistrationDone(String s, long l) {
                         Log.d("1.Ready", "");
+                        Dashboard.reg_status = 1;
                     }
 
                     @Override
                     public void onRegistrationFailed(String s, int i, String s1) {
                         Log.d("1.Registration failed.", "");
+                        Dashboard.reg_status = 2;
                     }
                 });
                 Dashboard.sipPermission = true;
@@ -967,6 +969,8 @@ public class Dashboard extends AppCompatActivity {
                 if (grantResults[0] != PackageManager.PERMISSION_GRANTED){
                     presentDialog("Note", "You cannot make a call without using this permission.");
                 }
+            }else {
+                initializeManager();
             }
         }
     }
@@ -993,6 +997,7 @@ public class Dashboard extends AppCompatActivity {
 //        if (mGoogleApiClient != null) {
 //            mGoogleApiClient.connect();
 //        }
+        initializeManager();
         Dashboard.returnContext = this;
 
         if(broadcastReceiver == null){
@@ -1242,21 +1247,6 @@ public class Dashboard extends AppCompatActivity {
             // for the fragment, which is always the root view for the activity
             transaction.add(R.id.drawerLayout, newFragment)
                     .addToBackStack(null).commit();
-        }
-    }
-
-    private Bitmap bitMapFromUrl(String urlString){
-        try {
-            URL url = new URL(urlString);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setDoInput(true);
-            connection.connect();
-            InputStream input = connection.getInputStream();
-            Bitmap myBitmap = BitmapFactory.decodeStream(input);
-            return myBitmap;
-        } catch (IOException e) {
-            // Log exception
-            return null;
         }
     }
 

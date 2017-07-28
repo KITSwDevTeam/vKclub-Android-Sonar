@@ -83,15 +83,15 @@ public class Dailer extends Fragment{
             @Override
             public void onClick(View v) {
                 if (dashboard.reg_status == 1){
-                    if (dashboard.sipPermission || permission_activation){
-                        call();
-                    }else {
-                        permissionDenied();
-                    }
+                    call();
                 }else if (dashboard.reg_status == 2){
                     sipSessionError();
                 }else {
-                    permissionDenied();
+                    if (Build.VERSION.SDK_INT >= 23){
+                        requestPermissions(new String[]{
+                                Manifest.permission.READ_PHONE_STATE
+                        }, 100);
+                    }
                 }
             }
         });
@@ -141,7 +141,7 @@ public class Dailer extends Fragment{
                 System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
             }else {
                 System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-                permission_activation = true;
+                Voip.voipActivity.finish();
             }
         }
     }
