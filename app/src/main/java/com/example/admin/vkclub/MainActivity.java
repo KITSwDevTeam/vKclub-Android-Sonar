@@ -1,6 +1,7 @@
 package com.example.admin.vkclub;
 
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.sip.SipAudioCall;
@@ -10,6 +11,7 @@ import android.net.sip.SipProfile;
 import android.net.sip.SipRegistrationListener;
 import android.os.Build;
 import android.preference.PreferenceManager;
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -32,6 +34,10 @@ public class MainActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
+    private SharedPreferences preferences;
+    SharedPreferences.Editor editor;
+    Boolean isFirstLaunch;
+    private static Context context;
 
     // Duration
     private final int SPLASH_DELAY = 1000;
@@ -40,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        context = this;
 
         if(Build.VERSION.SDK_INT >= 21){
             Window window = this.getWindow();
@@ -53,12 +60,22 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
-                if (user != null) {
-                    // User is signed in
-                    navigate(Dashboard.class);
-                } else {
-                    // User is signed out
-                    navigate(LoginActivity.class);
+                preferences = PreferenceManager.getDefaultSharedPreferences(context);
+                isFirstLaunch = preferences.getBoolean("FirstLaunch", false);
+                if (isFirstLaunch){
+                    if (user != null) {
+                        // User is signed in
+                        navigate(Dashboard.class);
+                    } else {
+                        // User is signed out
+                        navigate(LoginActivity.class);
+                    }
+                }else {
+                    editor = preferences.edit();
+                    editor.putBoolean("FirstLaunch", true);
+                    editor.commit();
+                    Intent intent = new Intent(context, WelcomeActivity.class);
+                    startActivity(intent);
                 }
             }
         };

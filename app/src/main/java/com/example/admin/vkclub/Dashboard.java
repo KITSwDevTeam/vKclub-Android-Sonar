@@ -5,6 +5,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.graphics.Matrix;
 import android.media.Image;
 import android.media.MediaPlayer;
 import android.net.sip.SipSession;
@@ -127,6 +128,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
@@ -135,27 +137,17 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Handler;
 
-
-import static android.Manifest.permission.ACCESS_FINE_LOCATION;
-import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
-import static android.Manifest.permission.INTERNET;
-import static android.Manifest.permission.MANAGE_DOCUMENTS;
-import static android.R.attr.bitmap;
-import static android.R.attr.data;
-import static android.R.attr.viewportHeight;
-import static android.R.style.Theme_Black_NoTitleBar_Fullscreen;
-import static com.example.admin.vkclub.R.id.name;
-
 public class Dashboard extends AppCompatActivity {
 
     private static final int CAMERA_REQUEST = 1888;
     private static final int PICK_IMAGE_REQUEST = 234;
+    private static final int REQUEST_CROP_ICON = 168;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
-    private Button logoutBtn, opendrawer, appmode, mapButton, membershipBtn, voipBtn, setting, openNotification, aboutUs;
-    private Button logoutBtn, opendrawer, appmode, mapButton, membershipBtn, mProvider, mContact, mUpdateprofile, mSetting,mNotification;
+    private Button voipBtn, setting, openNotification, aboutUs;
+    private Button logoutBtn, opendrawer, appmode, mapButton, membershipBtn, mProvider, mContact, mUpdateprofile, mSetting;
     private EditText mName, mEmail, mCurrentpass;
     private ImageView userPhoto;
     private TextView userName, userEmail;
@@ -172,7 +164,8 @@ public class Dashboard extends AppCompatActivity {
     public Voip voipClient;
 
     private BroadcastReceiver broadcastReceiver;
-    String phoneNumber= "+13343758067";
+//    String phoneNumber= "+13343758067";
+    String phoneNumber= "+855962304669";
     String message, facebookUserId = "";
     int statusCode;
     double currentLat, currentLon;
@@ -200,18 +193,32 @@ public class Dashboard extends AppCompatActivity {
 
     private static Context returnContext;
     public static int reg_status = 0;
+    public static boolean sipPermission;
+    DataBaseHelper mDataBaseHelper;
+
+    SharedPreferences prefs;
+    String imageBlob;
+
+    public static Activity dashboardActivity;
+
+    private static final int LOCATION_PERMISSION_GRANTED = 123;
+    private static final int LOCATION_PERMISSION_NOT_GRANTED = 321;
+    private static final int SIP_PERMISSION_GRANTED = 789;
+    private static final int SIP_PERMISSION_NOT_GRANTED = 987;
+    private static final int ALL_PERMISSION_GRANTED = 99999;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
         Dashboard.returnContext = this;
+        Dashboard.dashboardActivity = this;
 
         storage = FirebaseStorage.getInstance();
 
         appmode = (Button) findViewById(R.id.appMode);
         mapButton = (Button) findViewById(R.id.mapBtn);
-        membershipBtn = (Button) findViewById(R.id.membershipp);
+        membershipBtn = (Button) findViewById(R.id.membership);
         mName = (EditText) findViewById(R.id.name1);
         mEmail = (EditText) findViewById(R.id.email1);
         mCurrentpass = (EditText) findViewById(R.id.confirmpass1);
@@ -224,54 +231,15 @@ public class Dashboard extends AppCompatActivity {
         logoutBtn = (Button) findViewById(R.id.logout);
         mSetting = (Button) findViewById(R.id.setting);
         mContact = (Button) findViewById(R.id.contact);
-        mNotification = (Button) findViewById(R.id.openNotification);
         membershipBtn = (Button) findViewById(R.id.membership);
         voipBtn = (Button)findViewById(R.id.voip);
         openNotification = (Button)findViewById(R.id.openNotification);
         aboutUs = (Button) findViewById(R.id.about_us);
-
-        openNotification.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showDialog();
-            }
-        });
-
-        setting = (Button)findViewById(R.id.setting);
-
-        setting.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getFragmentManager().beginTransaction().replace(android.R.id.content, new SipSettings()).commit();
-            }
-        });
-
         msg = (TextView)findViewById(R.id.welcomeMsg);
-
-        if (!requestSipPermissions())
-            initializeManager();
-
-        if (!runtime_permissions())
-            start_gps_service();
-
-        // upcoming module
-        upComingModule(membershipBtn, "membership");
-
-        // call navigate
-        navigateScreen(mapButton, Map.class);
-        navigateScreen(aboutUs, About.class);
-        navigateScreen(voipBtn, Voip.class);
 
         mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.open, R.string.close);
         mDrawerLayout.addDrawerListener(mToggle);
         mToggle.syncState();
-
-        opendrawer.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mDrawerLayout.openDrawer(Gravity.LEFT);
-            }
-        });
 
         if (Build.VERSION.SDK_INT >= 21) {
             Window window = this.getWindow();
@@ -280,41 +248,78 @@ public class Dashboard extends AppCompatActivity {
             window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorStatusBar));
         }
 
+        runtime_permissions();
+
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if (user != null) {
+                    // User is signed in
+                } else {
+                    // User is signed out
+                }
+            }
+        };
+
+        opendrawer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mDrawerLayout.openDrawer(Gravity.LEFT);
+            }
+        });
+
+        openNotification.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showNotificationPanel();
+            }
+        });
+
+//        setting = (Button)findViewById(R.id.setting);
+//        setting.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                getFragmentManager().beginTransaction().replace(android.R.id.content, new SipSettings()).commit();
+//            }
+//        });
+
+        // upcoming module
+        upComingModule(membershipBtn, "membership");
+
+        // call navigate
+        navigateScreen(mapButton, Map.class);
+        navigateScreen(aboutUs, About.class);
+
+        voipBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (Build.VERSION.SDK_INT >= 23 && ContextCompat.checkSelfPermission(getAppContext(), Manifest.permission.READ_PHONE_STATE)
+                        != PackageManager.PERMISSION_GRANTED){
+                    ActivityCompat.requestPermissions(Dashboard.dashboardActivity, new String[]{
+                            Manifest.permission.READ_PHONE_STATE
+                    }, 300);
+                }else {
+                    Intent in = new Intent(getAppContext(), Voip.class);
+                    startActivity(in);
+                }
+            }
+        });
+
         mAuth = FirebaseAuth.getInstance();
         user = mAuth.getCurrentUser();
         Log.d("++++++++++++++TAG+++++++++++++", user.getProviderId());
-        if (user != null) {
 
+        if (user != null) {
             // find the Facebook profile and get the user's id
             for (UserInfo profile : user.getProviderData()) {
                 Log.v(">>>>>>>>>>>>>>>>>>>>>>>>>", profile.getProviderId());
-//                presentDialog("Provider ID", profile.getProviderId());
 
-                // check if the provider id matches "facebook.com"
-                if (profile.getProviderId().equals("facebook.com")) {
-//                    presentDialog("Provider ID", profile.getProviderId());
-                    facebookUserId = profile.getUid();
-//                    setProfilePic(user.getPhotoUrl().toString());
-//                    Log.d("*******************************",user.getPhotoUrl().toString());
-                    setProfilePic("https://graph.facebook.com/" + facebookUserId + "/picture?height=500");
-                } else if (profile.getProviderId().equals("password")) {
-                    if (user.getPhotoUrl() == null) {
-
-                    } else {
-                        setProfilePic(user.getPhotoUrl().toString());
-                    }
-                }
-                userName.setText(user.getDisplayName());
-                userEmail.setText(user.getEmail());
-                userPhoto.setImageURI(user.getPhotoUrl());
-//                presentDialog("yeah",userPhoto.toString());
-            }
-
-//  sign in option whether the user login with fb or email
-            for (UserInfo profile : user.getProviderData()) {
                 // check if the provider id matches "facebook.com"
                 if (profile.getProviderId().equals("facebook.com")) {
                     mProvider.setText("FB Linked");
+                    facebookUserId = profile.getUid();
+                    setProfilePic("https://graph.facebook.com/" + facebookUserId + "/picture?height=500");
                     mProvider.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
@@ -327,59 +332,65 @@ public class Dashboard extends AppCompatActivity {
                             changeprofile();
                         }
                     });
-                } else {
-                    if (profile.getProviderId().equals("password")) {
-                        mProvider.setText("Edit");
-                        mProvider.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                AlertDialog.Builder mBuilder = new AlertDialog.Builder(Dashboard.this);
-                                View mView = getLayoutInflater().inflate(R.layout.edit_info, null);
-                                mBuilder.setView(mView);
-                                AlertDialog dialog = mBuilder.create();
-                                dialog.show();
-                            }
-                        });
-                        userPhoto.setOnClickListener(new View.OnClickListener() {
-                            public void onClick(View view) {
-                                changeprofile();
-                            }
-                        });
+                } else if (profile.getProviderId().equals("password")) {
+                    mProvider.setText("Edit");
+                    if (user.getPhotoUrl() == null) {
+                        System.out.println("user.getPhotoUrl() == null");
+                    } else {
+                        setProfilePic(user.getPhotoUrl().toString());
                     }
+
+                    mProvider.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            AlertDialog.Builder mBuilder = new AlertDialog.Builder(Dashboard.this);
+                            View mView = getLayoutInflater().inflate(R.layout.edit_info, null);
+                            mBuilder.setView(mView);
+                            AlertDialog dialog = mBuilder.create();
+                            dialog.show();
+                        }
+                    });
+                    userPhoto.setOnClickListener(new View.OnClickListener() {
+                        public void onClick(View view) {
+                            changeprofile();
+                        }
+                    });
                 }
+                userName.setText(user.getDisplayName());
+                userEmail.setText(user.getEmail());
+                userPhoto.setImageURI(user.getPhotoUrl());
             }
 
-            mAuthListener = new FirebaseAuth.AuthStateListener() {
+            logoutBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                    FirebaseUser user = firebaseAuth.getCurrentUser();
-                    if (user != null) {
-                        // User is signed in
-                    } else {
-                        // User is signed out
-                    }
+                public void onClick(View v) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getAppContext());
+                    builder.setTitle("Are you sure ?");
+                    builder.setMessage("Logout Vkclub from this device.");
+                    builder.setCancelable(true);
+
+                    builder.setPositiveButton(
+                            "Logout",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    mAuth.getInstance().signOut();
+                                    LoginManager.getInstance().logOut();
+                                    Intent intent = new Intent(Dashboard.this, LoginActivity.class);
+                                    startActivity(intent);
+                                }
+                            });
+
+                    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+
+                    AlertDialog alert = builder.create();
+                    alert.show();
                 }
-            };
-
-        logoutBtn = (Button) findViewById(R.id.logout);
-        logoutBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(getAppContext());
-                builder.setTitle("Are you sure ?");
-                builder.setMessage("Logout Vkclub from this device.");
-                builder.setCancelable(true);
-
-                builder.setPositiveButton(
-                        "Logout",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                mAuth.getInstance().signOut();
-                                LoginManager.getInstance().logOut();
-                                Intent intent = new Intent(Dashboard.this, LoginActivity.class);
-                                startActivity(intent);
-                            }
-                        });
+            });
 
             //setting
             mSetting.setOnClickListener(new View.OnClickListener() {
@@ -393,7 +404,6 @@ public class Dashboard extends AppCompatActivity {
                 }
             });
 
-
             //contact
             mContact.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -402,8 +412,6 @@ public class Dashboard extends AppCompatActivity {
                     listItems.add("Reception(+855 78 777 284)");
                     listItems.add("Reception(+855 96 2222 735)");
                     listItems.add("Cancel");
-//                String[] listItems = { "Take Photo", "Select from Photo Library", "Cancel"};
-
 
                     //Create sequence of items
                     final CharSequence[] Animals = listItems.toArray(new String[listItems.size()]);
@@ -440,51 +448,17 @@ public class Dashboard extends AppCompatActivity {
                 }
             });
 
-            //Alert button sos
-            Button sos = (Button) findViewById(R.id.sos);
-            sos.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    // Creating alert Dialog with two Buttons
-                builder.setNegativeButton(
-                        "Cancel",
-                        new DialogInterface.OnClickListener(){
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.cancel();
-                            }
-                        });
-
-                AlertDialog alert = builder.create();
-                alert.show();
-            }
-        });
-
         //Alert button sos
         Button sos = (Button) findViewById(R.id.sos);
         sos.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // Creating alert Dialog with two Buttons
-
                     final AlertDialog.Builder alertDialog = new AlertDialog.Builder(Dashboard.this);
-
-                    // Setting Dialog Title
                     alertDialog.setTitle("Please help! ");
-
-                    // Setting Dialog Message
                     alertDialog.setMessage("I'm currently facing an emergency problem.");
-
-                    // Setting Icon to Dialog
-//                alertDialog.setIcon(R.drawable.delete);
-
-                    // Setting Positive "Yes" Button
                     AlertDialog.Builder confirm = alertDialog.setPositiveButton("Confirm",
                             new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
-                                    // Write your code here to execute after dialog
-//                                Toast.makeText(getApplicationContext(), "You clicked on Confirm", Toast.LENGTH_SHORT).show();
-                                    // Emergency sos sending sms
                                     String SENT = "SMS_SENT";
                                     String DELIVERED = "SMS_DELIVERED";
 
@@ -548,6 +522,7 @@ public class Dashboard extends AppCompatActivity {
                                     }
                                 }
                             });
+
                     // Setting Negative "NO" Button
                     alertDialog.setNegativeButton("Cancel",
                             new DialogInterface.OnClickListener() {
@@ -606,53 +581,57 @@ public class Dashboard extends AppCompatActivity {
             builder.setPassword("A2apbx10009");
             builder.setPort(sipPort);
             builder.setProtocol("UDP");
-//            builder.setAutoRegistration(true);
+            builder.setAutoRegistration(true);
             builder.setSendKeepAlive(true);
             mSipProfile = builder.build();
 
             Intent i = new Intent();
             i.setAction("android.Vkclub.INCOMING_CALL");
             PendingIntent pi = PendingIntent.getBroadcast(this, 0, i, Intent.FILL_IN_DATA);
-            mSipManager.open(mSipProfile, pi, null);
+            if (Build.VERSION.SDK_INT >= 23 &&
+                    ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED){
+                mSipManager.open(mSipProfile, pi, null);
 
-            // This listener must be added AFTER manager.open is called,
-            // Otherwise the methods aren't guaranteed to fire.
+                // This listener must be added AFTER manager.open is called,
+                // Otherwise the methods aren't guaranteed to fire.
 
-            mSipManager.setRegistrationListener(mSipProfile.getUriString(), new SipRegistrationListener() {
-                @Override
-                public void onRegistering(String s) {
-                    System.out.println("1.SET Registering with SIP Server...");
-                }
+                mSipManager.setRegistrationListener(mSipProfile.getUriString(), new SipRegistrationListener() {
+                    @Override
+                    public void onRegistering(String s) {
+                        System.out.println("1.SET Registering with SIP Server...");
+                    }
 
-                @Override
-                public void onRegistrationDone(String s, long l) {
-                    System.out.println("1.SET Ready");
-                    Dashboard.reg_status = 1;
-                }
+                    @Override
+                    public void onRegistrationDone(String s, long l) {
+                        System.out.println("1.SET Ready");
+                        Dashboard.reg_status = 1;
+                    }
 
-                @Override
-                public void onRegistrationFailed(String s, int i, String s1) {
-                    System.out.println("1.SET Registration failed.");
-                    Dashboard.reg_status = 2;
-                }
-            });
+                    @Override
+                    public void onRegistrationFailed(String s, int i, String s1) {
+                        System.out.println("1.SET Registration failed.");
+                        Dashboard.reg_status = 2;
+                    }
+                });
 
-            mSipManager.register(mSipProfile, 240, new SipRegistrationListener() {
-                @Override
-                public void onRegistering(String s) {
-                    Log.d("1.Registering with SIP Server...", "");
-                }
+                mSipManager.register(mSipProfile, 240, new SipRegistrationListener() {
+                    @Override
+                    public void onRegistering(String s) {
+                        Log.d("1.Registering with SIP Server...", "");
+                    }
 
-                @Override
-                public void onRegistrationDone(String s, long l) {
-                    Log.d("1.Ready", "");
-                }
+                    @Override
+                    public void onRegistrationDone(String s, long l) {
+                        Log.d("1.Ready", "");
+                    }
 
-                @Override
-                public void onRegistrationFailed(String s, int i, String s1) {
-                    Log.d("1.Registration failed.", "");
-                }
-            });
+                    @Override
+                    public void onRegistrationFailed(String s, int i, String s1) {
+                        Log.d("1.Registration failed.", "");
+                    }
+                });
+                Dashboard.sipPermission = true;
+            }
 
         } catch (ParseException pe) {
             Dashboard.reg_status = 2;
@@ -676,7 +655,10 @@ public class Dashboard extends AppCompatActivity {
         }
         try {
             if (mSipProfile != null) {
-                mSipManager.close(mSipProfile.getUriString());
+                if (Build.VERSION.SDK_INT >= 23 &&
+                        ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED){
+                    mSipManager.close(mSipProfile.getUriString());
+                }
             }
         } catch (Exception ee) {
             Log.d("/onDestroy", "Failed to close local profile.", ee);
@@ -851,12 +833,12 @@ public class Dashboard extends AppCompatActivity {
         listItems.add("Select from Photo Library");
         listItems.add("Cancel");
 
-        final CharSequence[] Animals = listItems.toArray(new String[listItems.size()]);
+        final CharSequence[] methods = listItems.toArray(new String[listItems.size()]);
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(Dashboard.this);
         dialogBuilder.setTitle("Upload Profile Picture");
-        dialogBuilder.setItems(Animals, new DialogInterface.OnClickListener() {
+        dialogBuilder.setItems(methods, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int item) {
-                String selectedText = Animals[item].toString();  //Selected item in listview
+                String selectedText = methods[item].toString();  //Selected item in listview
                 if (selectedText.equals("Take Photo")) {
                     dispatchTakePictureIntent();
                 } else if (selectedText.equals("Select from Photo Library")) {
@@ -886,6 +868,12 @@ public class Dashboard extends AppCompatActivity {
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_PICK);
+        intent.putExtra("crop", "true");
+        intent.putExtra("aspectX", 1);
+        intent.putExtra("aspectY", 1);
+        intent.putExtra("outputX", 200);
+        intent.putExtra("outputY", 200);
+        intent.putExtra("return-data", true);
         startActivityForResult(Intent.createChooser(intent, "Select Image"), PICK_IMAGE_REQUEST);
     }
 
@@ -910,81 +898,75 @@ public class Dashboard extends AppCompatActivity {
         startService(i);
     }
 
-    private boolean runtime_permissions() {
-        if (Build.VERSION.SDK_INT >= 23 && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)  {
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
+    private void runtime_permissions() {
+        if (Build.VERSION.SDK_INT >= 23)  {
+            ActivityCompat.requestPermissions(Dashboard.this, new String[]{
+                    Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.READ_PHONE_STATE
             }, 100);
-            return true;
         }
-        return false;
-    }
-
-    private boolean requestSipPermissions(){
-        if (Build.VERSION.SDK_INT >= 23 && ContextCompat.checkSelfPermission(this, Manifest.permission.USE_SIP) != PackageManager.PERMISSION_DENIED &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_SETTINGS) != PackageManager.PERMISSION_DENIED &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_DENIED &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_WIFI_STATE) != PackageManager.PERMISSION_DENIED &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_DENIED) {
-            requestPermissions(new String[]{
-                    Manifest.permission.USE_SIP,
-                    Manifest.permission.WRITE_SETTINGS,
-                    Manifest.permission.INTERNET,
-                    Manifest.permission.ACCESS_WIFI_STATE,
-                    Manifest.permission.RECORD_AUDIO
-            }, 100);
-            return true;
-        }
-        return false;
     }
 
     private void calcDistance(double currentLat, double currentLon){
-        //Earth Ray
-        double R = 6371;
-
-        //Get latlong value diferences between two points
-        double dLat = (currentLat - 11.317655) * Math.PI / 180;
-        double dLon = (currentLon - 104.064933) * Math.PI / 180;
-
-        //Calculate distance with Haversine Formula
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(11.317655 * Math.PI / 180)
-                * Math.cos(currentLat * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        double distance  = R * c;
-
-        if(distance < 17){
-            appmode.setText("IN-Kirirom Mode " + distance);
-            appmode.setTextColor(Color.parseColor("#1A6940"));
-            this.statusCode = 0;
-        } else if(distance >= 17){
-            appmode.setText("OFF-Kirirom Mode " + distance);
-            this.statusCode = 1;
-        } else {
-            appmode.setText("Unidentified " + distance);
-            appmode.setTextColor(Color.parseColor("#c0c0c0"));
+        if (currentLat == 0 && currentLon == 0){
+            // Permission denied
             this.statusCode = 2;
+            appmode.setText("Unidentified ");
+            appmode.setTextColor(Color.parseColor("#c0c0c0"));
+        }else {
+            //Earth Ray
+            double R = 6371;
+
+            //Get latlong value diferences between two points
+            double dLat = (currentLat - 11.317655) * Math.PI / 180;
+            double dLon = (currentLon - 104.064933) * Math.PI / 180;
+
+            //Calculate distance with Haversine Formula
+            double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(11.317655 * Math.PI / 180)
+                    * Math.cos(currentLat * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            double distance  = R * c;
+
+            if(distance < 17){
+                appmode.setText("IN-Kirirom Mode");
+                appmode.setTextColor(Color.parseColor("#1A6940"));
+                this.statusCode = 0;
+            } else if(distance >= 17){
+                appmode.setText("OFF-Kirirom Mode");
+                this.statusCode = 1;
+            } else {
+                presentDialog("Technical Error", "Location update failed!");
+            }
         }
     }
 
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        System.out.println("onRequestPermissionsResult");
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(requestCode == 100){
-            if(grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED){
-                // READY FOR LOCATION TRACKING
-                start_gps_service();
-            } else if(grantResults[2] == PackageManager.PERMISSION_GRANTED &&
-            grantResults[3] == PackageManager.PERMISSION_GRANTED &&
-            grantResults[4] == PackageManager.PERMISSION_GRANTED &&
-            grantResults[5] == PackageManager.PERMISSION_GRANTED &&
-                    grantResults[6] == PackageManager.PERMISSION_GRANTED){
-                runtime_permissions();
-            }else {
-                // Request Runtime Permission again
-                runtime_permissions();
+        if (requestCode == 100){
+            if (grantResults.length > 0){
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED){
+                    start_gps_service();
+                }else {
+                    System.out.println("LOCATION PERMISSION DENIED BRO" + " WHAT DO YOU WANT ? " + grantResults.length);
+                }
+
+                if (grantResults[2] == PackageManager.PERMISSION_GRANTED){
+                    initializeManager();
+                }else {
+                    presentDialog("Permission Denied", "Please allow phone permission in the app setting in" +
+                            " order to use Vkclub call service.\nThank you for using Vkclub");
+                }
+            }
+        }
+
+        if (requestCode == 300){
+            if (grantResults.length > 0){
+                if (grantResults[0] != PackageManager.PERMISSION_GRANTED){
+                    presentDialog("Note", "You cannot make a call without using this permission.");
+                }
             }
         }
     }
@@ -995,7 +977,6 @@ public class Dashboard extends AppCompatActivity {
         // Connect the client.
 //        mGoogleApiClient.connect();
         super.onStart();
-        initializeManager();
     }
 
     @Override
@@ -1018,11 +999,15 @@ public class Dashboard extends AppCompatActivity {
             broadcastReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
-
-                    currentLat = Double.parseDouble(intent.getExtras().get("latitude").toString());
-                    currentLon = Double.parseDouble(intent.getExtras().get("longitude").toString());
-                    message = "Please help! I'm currently facing an emergency problem. Here is my Location: http://maps.google.com/?q=" + currentLat + "," + currentLon;
-                    calcDistance(currentLat, currentLon);
+                    if (intent.getExtras().get("latitude").toString().length() == 0 &&
+                            intent.getExtras().get("longitude").toString().length() == 0){
+                        calcDistance(0, 0);
+                    }else {
+                        currentLat = Double.parseDouble(intent.getExtras().get("latitude").toString());
+                        currentLon = Double.parseDouble(intent.getExtras().get("longitude").toString());
+                        message = "Please help! I'm currently facing an emergency problem. Here is my Location: http://maps.google.com/?q=" + currentLat + "," + currentLon;
+                        calcDistance(currentLat, currentLon);
+                    }
                 }
             };
         }
@@ -1075,7 +1060,7 @@ public class Dashboard extends AppCompatActivity {
         });
     }
 
-    private void makeToast(String text){
+    private void toastMessage(String text){
         Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
     }
 
@@ -1100,41 +1085,34 @@ public class Dashboard extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
-            uri = data.getData();
-            Bitmap bitmap = null;
-            try {
-                bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-                RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(bitmap);
-                userPhoto.setImageDrawable(drawable);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
+            Bundle extras = data.getExtras();
+            Bitmap image = extras.getParcelable("data");
+            RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(image);
+            userPhoto.setImageDrawable(drawable);
         }
-        else {
-            if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
-                Bitmap photo = (Bitmap) data.getExtras().get("data");
-                RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(photo);
-                userPhoto.setImageDrawable(drawable);
 
-//                Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
-//                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-//                thumbnail.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
-//                File destination = new File(Environment.getExternalStorageDirectory(),
-//                        System.currentTimeMillis() + ".jpg");
-//                FileOutputStream fo;
-//                try {
-//                    destination.createNewFile();
-//                    fo = new FileOutputStream(destination);
-//                    fo.write(bytes.toByteArray());
-//                    fo.close();
-//                } catch (FileNotFoundException e) {
-//                    e.printStackTrace();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//                userPhoto.setImageBitmap(thumbnail);
-            }
+        if (requestCode == CAMERA_REQUEST && resultCode == RESULT_OK && data != null) {
+            Intent cropIntent = new Intent("com.android.camera.action.CROP");
+            cropIntent.setDataAndType(data.getData(), "image/*");
+            cropIntent.putExtra("crop", "true");
+            cropIntent.putExtra("aspectX", 1);
+            cropIntent.putExtra("aspectY", 1);
+            cropIntent.putExtra("outputX", 200);
+            cropIntent.putExtra("outputY", 200);
+            cropIntent.putExtra("return-data", true);
+            startActivityForResult(cropIntent, REQUEST_CROP_ICON);
+
+
+//            Bitmap photo = (Bitmap) data.getExtras().get("data");
+//            RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(photo);
+//            userPhoto.setImageDrawable(drawable);
+        }
+
+        if (requestCode == REQUEST_CROP_ICON && resultCode == RESULT_OK && data != null){
+            Bitmap photo = (Bitmap) data.getExtras().get("data");
+            RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(photo);
+            userPhoto.setImageDrawable(drawable);
         }
         upload();
     }
@@ -1167,15 +1145,7 @@ public class Dashboard extends AppCompatActivity {
                     UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder()
                             .setPhotoUri(downloadUri)
                             .build();
-                    user.updateProfile(profileUpdate)
-                            .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    if (task.isSuccessful()) {
-                                        presentDialog("hiii","heeeee");
-                                    }
-                                }
-                            });
+                    user.updateProfile(profileUpdate);
 
 //                    userPhoto.setDrawingCacheEnabled(true);
 //                    userPhoto.buildDrawingCache();
@@ -1255,8 +1225,8 @@ public class Dashboard extends AppCompatActivity {
         return roundedBitmapDrawable;
     }
 
-    public void showDialog() {
-        Notification newFragment = new Notification();
+    public void showNotificationPanel() {
+        NotificationPanel newFragment = new NotificationPanel();
         FragmentManager fragmentManager = getSupportFragmentManager();
         if ((getResources().getConfiguration().screenLayout &
                 Configuration.SCREENLAYOUT_SIZE_MASK) ==
@@ -1275,4 +1245,19 @@ public class Dashboard extends AppCompatActivity {
         }
     }
 
+    private Bitmap bitMapFromUrl(String urlString){
+        try {
+            URL url = new URL(urlString);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoInput(true);
+            connection.connect();
+            InputStream input = connection.getInputStream();
+            Bitmap myBitmap = BitmapFactory.decodeStream(input);
+            return myBitmap;
+        } catch (IOException e) {
+            // Log exception
+            return null;
+        }
     }
+
+}

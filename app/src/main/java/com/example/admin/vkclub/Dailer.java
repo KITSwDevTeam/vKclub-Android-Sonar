@@ -1,13 +1,19 @@
 package com.example.admin.vkclub;
 
+import android.*;
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.sip.SipAudioCall;
+import android.os.Build;
 import android.os.Parcelable;
 import android.os.PersistableBundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -37,6 +43,7 @@ public class Dailer extends Fragment{
     EditText numEditor;
     Button num1, num2, num3, num4, num5, num6, num7, num8, num9, num0;
     ImageButton backSpace, callBtn;
+    boolean permission_activation = false;
 
     @Nullable
     @Override
@@ -76,29 +83,15 @@ public class Dailer extends Fragment{
             @Override
             public void onClick(View v) {
                 if (dashboard.reg_status == 1){
-                    Intent in = new Intent(getContext(), Calling.class);
-                    in.putExtra("STATE", "DAILING");
-                    in.putExtra("CALLEE", numEditor.getText().toString());
-                    startActivity(in);
-                    dashboard.initiateCall(numEditor.getText().toString());
+                    if (dashboard.sipPermission || permission_activation){
+                        call();
+                    }else {
+                        permissionDenied();
+                    }
                 }else if (dashboard.reg_status == 2){
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                    builder.setTitle("Error");
-                    builder.setMessage("Either you are not connected to vKirirom network or server is not responding.\nPlease restart the app or contact the support team.\nThank you for using Vkclub.");
-                    builder.setCancelable(true);
-
-                    builder.setPositiveButton(
-                            "Yes",
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    dialog.cancel();
-                                }
-                            });
-
-                    AlertDialog alert = builder.create();
-                    alert.show();
+                    sipSessionError();
                 }else {
-                    Toast.makeText(getContext(), "Error", Toast.LENGTH_SHORT).show();
+                    permissionDenied();
                 }
             }
         });
@@ -122,5 +115,90 @@ public class Dailer extends Fragment{
                 numEditor.append(num.toString());
             }
         });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+        if (requestCode == 100){
+            if (grantResults[0] != PackageManager.PERMISSION_GRANTED){
+                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                builder.setTitle("Note");
+                builder.setMessage("You cannot make a call without this permission.");
+                builder.setCancelable(true);
+
+                builder.setPositiveButton(
+                        "Yes",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+
+                AlertDialog alert = builder.create();
+                alert.show();
+                System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+            }else {
+                System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+                permission_activation = true;
+            }
+        }
+    }
+
+    private void call(){
+        Intent in = new Intent(getContext(), Calling.class);
+        in.putExtra("STATE", "DAILING");
+        in.putExtra("CALLEE", numEditor.getText().toString());
+        startActivity(in);
+        dashboard.initiateCall(numEditor.getText().toString());
+    }
+
+    private void sipSessionError(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Error");
+        builder.setMessage("Either you are not connected to vKirirom network or server is not responding.\nPlease restart the app or contact the support team.\nThank you for using Vkclub.");
+        builder.setCancelable(true);
+
+        builder.setPositiveButton(
+                "Yes",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private void permissionDenied(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Permission denied");
+        builder.setMessage("Please allow phone permission in order to make call.");
+        builder.setCancelable(true);
+
+        builder.setPositiveButton(
+                "Allow",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        if (Build.VERSION.SDK_INT >= 23){
+                            requestPermissions(new String[]{
+                                    Manifest.permission.READ_PHONE_STATE
+                            }, 100);
+                        }
+                    }
+                });
+
+        builder.setNegativeButton(
+                "Cancel",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+
+        AlertDialog alert = builder.create();
+        alert.show();
     }
 }

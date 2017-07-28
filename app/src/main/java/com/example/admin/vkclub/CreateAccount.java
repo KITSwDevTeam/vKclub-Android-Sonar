@@ -150,20 +150,9 @@ public class CreateAccount extends AppCompatActivity {
                     UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder()
                             .setDisplayName(nameValue)
                             .build();
-                    user.updateProfile(profileUpdate)
-                            .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    if (task.isSuccessful()) {
-                                        presentDialog("hiii","heeeee");
-                                    }
-                                }
-                            });
-                    FirebaseUser user = mAuth.getCurrentUser();
+                    user.updateProfile(profileUpdate);
                     sendEmailVerification(user);
                     // create account success
-                    // log user in to the dashboard
-                    login(email, password);
                 } else {
                     spinner.setVisibility(View.GONE);
                     statusText.setText("");
@@ -181,41 +170,6 @@ public class CreateAccount extends AppCompatActivity {
                             task.getException();
                         } catch (Exception e) {
                             presentDialog("SignUp Failed..", e.getMessage());
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    private void login(String email, String password) {
-        statusText.setText("Logging in... ");
-        mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                if (task.isSuccessful()) {
-                    // login successful...redirect user to the dashboard
-                    Intent intent = new Intent(CreateAccount.this, Dashboard.class);
-                    startActivity(intent);
-                    finish();
-                } else {
-                    // handle error
-                    spinner.setVisibility(View.GONE);
-                    statusText.setText("");
-                    if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
-                        // Invalid password
-                        presentDialog("Login Failed..", "Invalid Password");
-                    } else if (task.getException() instanceof FirebaseAuthInvalidUserException) {
-                        // Invalid Email id
-                        presentDialog("Login Failed..", "Invalid Email");
-                    } else if (task.getException() instanceof FirebaseNetworkException) {
-                        // No internet Connection
-                        presentDialog("Login Failed..", "No network coverage");
-                    } else {
-                        try {
-                            throw task.getException();
-                        } catch (Exception e) {
-                            presentDialog("Login Failed..", e.getMessage());
                         }
                     }
                 }

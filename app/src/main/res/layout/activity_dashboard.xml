@@ -256,7 +256,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:text="Contact us"
-                    android:id="@+id/contact"
                     android:layout_gravity="center"
                     android:layout_marginTop="1dp"
                     android:background="@drawable/sidebar_module"
@@ -264,7 +263,6 @@
                     android:drawableRight="@drawable/ic_play_symbol"
                     android:paddingLeft="20dp"
                     android:paddingRight="10dp"
-                    android:text="Contact"
                     android:textAllCaps="false"
                     android:textColor="@color/colorWhite" />
 

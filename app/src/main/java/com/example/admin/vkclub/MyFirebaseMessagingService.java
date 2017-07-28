@@ -64,6 +64,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         Intent intent = new Intent(this, DialogActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.putExtra("message", remoteMessage.getNotification().getBody());
-        startActivity(in);
+        startActivity(intent);
     }
 }
