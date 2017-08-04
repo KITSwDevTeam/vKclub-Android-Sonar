@@ -149,7 +149,7 @@ public class Dashboard extends AppCompatActivity {
     private FirebaseAuth.AuthStateListener mAuthListener;
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
-    private Button voipBtn, setting, openNotification, aboutUs;
+    private Button voipBtn, setting, openNotification, aboutUs,mService;
     private Button logoutBtn, opendrawer, appmode, mapButton, membershipBtn, mProvider, mContact, mUpdateprofile, mSetting;
     private EditText mName, mEmail, mCurrentpass;
     private View uploading, uploadDone;
@@ -224,7 +224,7 @@ public class Dashboard extends AppCompatActivity {
         appmode = (Button) findViewById(R.id.appMode);
         mapButton = (Button) findViewById(R.id.mapBtn);
         membershipBtn = (Button) findViewById(R.id.membership);
-        mName = (EditText) findViewById(R.id.name1);
+        mName = (EditText) findViewById(R.id.nameprofile);
         mEmail = (EditText) findViewById(R.id.email1);
         mCurrentpass = (EditText) findViewById(R.id.confirmpass1);
         userPhoto = (ImageView) findViewById(R.id.userphoto);
@@ -240,6 +240,7 @@ public class Dashboard extends AppCompatActivity {
         voipBtn = (Button)findViewById(R.id.voip);
         openNotification = (Button)findViewById(R.id.openNotification);
         aboutUs = (Button) findViewById(R.id.about_us);
+        mService = (Button) findViewById(R.id.serviceBtn);
         msg = (TextView)findViewById(R.id.welcomeMsg);
         spinningStatus = (TextView) findViewById(R.id.spinning_status);
         uploading = findViewById(R.id.uploading_spinner);
@@ -302,6 +303,7 @@ public class Dashboard extends AppCompatActivity {
         // call navigate
         navigateScreen(mapButton, Map.class);
         navigateScreen(aboutUs, About.class);
+        navigateScreen(mService,Services.class);
 
         voipBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -382,11 +384,8 @@ public class Dashboard extends AppCompatActivity {
                     mProvider.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            AlertDialog.Builder mBuilder = new AlertDialog.Builder(Dashboard.this);
-                            View mView = getLayoutInflater().inflate(R.layout.edit_info, null);
-                            mBuilder.setView(mView);
-                            AlertDialog dialog = mBuilder.create();
-                            dialog.show();
+                            showDialog();
+                            mDrawerLayout.closeDrawer(Gravity.LEFT);
                         }
                     });
                     userPhoto.setOnClickListener(new View.OnClickListener() {
@@ -591,6 +590,26 @@ public class Dashboard extends AppCompatActivity {
         filter.addAction("android.Vkclub.INCOMING_CALL");
         callReceiver = new IncomingCallReceiver();
         this.registerReceiver(callReceiver, filter);
+    }
+
+    public void showDialog() {
+        EditProfile newFragment = new EditProfile();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        if ((getResources().getConfiguration().screenLayout &
+                Configuration.SCREENLAYOUT_SIZE_MASK) ==
+                Configuration.SCREENLAYOUT_SIZE_LARGE) {
+            // The device is using a large layout, so show the fragment as a dialog
+            newFragment.show(fragmentManager, "dialog");
+        } else {
+            // The device is smaller, so show the fragment fullscreen
+            FragmentTransaction transaction = fragmentManager.beginTransaction();
+            // For a little polish, specify a transition animation
+            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+            // To make it fullscreen, use the 'content' root view as the container
+            // for the fragment, which is always the root view for the activity
+            transaction.add(R.id.drawerLayout, newFragment)
+                    .addToBackStack(null).commit();
+        }
     }
 
     public static Context getAppContext(){

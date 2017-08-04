@@ -142,7 +142,7 @@ public class CreateAccount extends AppCompatActivity {
     private void createAccount(final String email, final String password,final String nameValue) {
         spinner.setVisibility(View.VISIBLE);
         statusText.setText("Processing...");
-        mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+        mAuth.createUserWithEmailAndPassword(email,password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
@@ -177,6 +177,7 @@ public class CreateAccount extends AppCompatActivity {
         });
     }
 
+    //sent email to user verified
     private void sendEmailVerification(FirebaseUser user){
         statusText.setText("Sending verification email... ");
         user.sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {

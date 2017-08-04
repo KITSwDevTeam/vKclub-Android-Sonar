@@ -110,9 +110,6 @@
             android:name=".Dashboard"
             android:theme="@style/noActionBar" />
         <activity
-            android:name=".EditInfo"
-            android:theme="@style/noActionBar" />
-        <activity
             android:name=".ForgetPassword"
             android:theme="@style/noActionBar" />
 
@@ -160,6 +157,11 @@
             android:name=".WelcomeActivity"
             android:theme="@style/noActionBar" />
         <activity android:name=".Setting"></activity>
+        <activity
+            android:name=".WelcomeActivity"
+            android:theme="@style/noActionBar" />
+        <activity android:name=".Services" />
+        <activity android:name=".EditProfile"></activity>
     </application>
 
 </manifest>

@@ -184,10 +184,10 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:gravity="start"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="30dp">
+            android:layout_marginTop="30dp"
+            android:gravity="start"
+            android:orientation="vertical">
 
             <!--Place your ImageView here-->
 
@@ -253,57 +253,56 @@
                 android:id="@+id/username"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#000000"
-                android:textStyle="bold"
+                android:layout_gravity="center_horizontal"
                 android:layout_marginTop="10dp"
-                android:layout_gravity="center_horizontal"/>
+                android:textColor="#000000"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/useremail"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#000000"
-                android:textStyle="bold"
+                android:layout_gravity="center_horizontal"
                 android:layout_marginTop="10dp"
-                android:layout_gravity="center_horizontal"/>
+                android:textColor="#000000"
+                android:textStyle="bold" />
 
             <Button
                 android:id="@+id/provider"
                 android:layout_width="70dp"
                 android:layout_height="20dp"
-                android:textColor="@color/colorWhite"
-                android:textAllCaps="false"
-                android:textSize="10dp"
-                android:background="@drawable/fb_link"
                 android:layout_gravity="center"
-                android:layout_marginTop="10dp"/>
+                android:layout_marginTop="10dp"
+                android:background="@drawable/fb_link"
+                android:textAllCaps="false"
+                android:textColor="@color/colorWhite"
+                android:textSize="10dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginTop="10dp">
+                android:layout_marginTop="10dp"
+                android:orientation="vertical">
 
                 <Button
+                    android:id="@+id/setting"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
-                    android:text="Setting"
-                    android:id="@+id/setting"
                     android:layout_gravity="center"
-                    android:background="@drawable/sidebar_module"
                     android:layout_marginTop="30dp"
-                    android:textColor="@color/colorWhite"
+                    android:background="@drawable/sidebar_module"
                     android:drawableLeft="@drawable/ic_settings"
                     android:drawableRight="@drawable/ic_play_symbol"
                     android:paddingLeft="20dp"
                     android:paddingRight="10dp"
-                    android:textAllCaps="false"/>
+                    android:text="Setting"
+                    android:textAllCaps="false"
+                    android:textColor="@color/colorWhite" />
 
                 <Button
                     android:id="@+id/contact"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
-                    android:text="Contact us"
                     android:layout_gravity="center"
                     android:layout_marginTop="1dp"
                     android:background="@drawable/sidebar_module"
@@ -311,35 +310,36 @@
                     android:drawableRight="@drawable/ic_play_symbol"
                     android:paddingLeft="20dp"
                     android:paddingRight="10dp"
+                    android:text="Contact us"
                     android:textAllCaps="false"
                     android:textColor="@color/colorWhite" />
 
                 <Button
+                    android:id="@+id/logout"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
-                    android:text="Logout"
-                    android:id="@+id/logout"
                     android:layout_gravity="center"
-                    android:background="@drawable/sidebar_module"
                     android:layout_marginTop="1dp"
-                    android:textColor="@color/colorWhite"
+                    android:background="@drawable/sidebar_module"
                     android:drawableLeft="@drawable/ic_logout"
                     android:drawableRight="@drawable/ic_play_symbol"
                     android:paddingLeft="20dp"
                     android:paddingRight="10dp"
-                    android:textAllCaps="false"/>
+                    android:text="Logout"
+                    android:textAllCaps="false"
+                    android:textColor="@color/colorWhite" />
 
                 <Button
+                    android:id="@+id/sos"
                     android:layout_width="200dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
-                    android:background="@drawable/emergency_btn"
+                    android:layout_marginBottom="2dp"
                     android:layout_marginTop="100dp"
+                    android:background="@drawable/emergency_btn"
                     android:text="Emergency SOS"
                     android:textAllCaps="false"
-                    android:textColor="@color/colorWhite"
-                    android:layout_marginBottom="2dp"
-                    android:id="@+id/sos" />
+                    android:textColor="@color/colorWhite" />
             </LinearLayout>
         </LinearLayout>
 

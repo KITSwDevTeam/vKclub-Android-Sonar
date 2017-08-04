@@ -5,8 +5,9 @@
     <color name="colorAccent">#FF4081</color>
     <color name="colorWhite">#fafafa</color>
     <color name="colorGrey">#808080</color>
+    <color name="colorBlack">#000000</color>
     <color name="colorBackground">#1A6940</color>
-    <color name="colorRed">#c0c0c0</color>
+    <color name="colorRed">#F00000</color>
     <color name="colorStatusBar">#1a7043</color>
     <color name="goldenrod">#daa520</color>
     <color name="sample">#1A6930</color>
