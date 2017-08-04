@@ -672,17 +672,20 @@ public class Dashboard extends AppCompatActivity {
                 mSipManager.setRegistrationListener(mSipProfile.getUriString(), new SipRegistrationListener() {
                     @Override
                     public void onRegistering(String s) {
+                        msg.setText("Registering with SIP server...");
                         System.out.println("1.SET Registering with SIP Server...");
                     }
 
                     @Override
                     public void onRegistrationDone(String s, long l) {
+                        msg.setText("Register with SIP server success.");
                         System.out.println("1.SET Ready");
                         Dashboard.reg_status = 1;
                     }
 
                     @Override
                     public void onRegistrationFailed(String s, int i, String s1) {
+                        msg.setText("Registration failed.");
                         System.out.println("1.SET Registration failed.");
                         Dashboard.reg_status = 2;
                     }
@@ -716,9 +719,11 @@ public class Dashboard extends AppCompatActivity {
             }
 
         } catch (ParseException pe) {
+            msg.setText("ParseException thrown");
             Dashboard.reg_status = 2;
             Log.d("ParseException", pe.toString());
         } catch (SipException se){
+            msg.setText("SipException thrown");
             Dashboard.reg_status = 2;
             Log.d("SipException hi", se.toString());
         }

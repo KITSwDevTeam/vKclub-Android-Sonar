@@ -173,10 +173,6 @@ public class EditProfile extends DialogFragment {
                                                                 public void onComplete(@NonNull Task<Void> task) {
                                                                     if (task.isSuccessful()) {
                                                                         Log.d("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",user.getEmail());
-                                                                        mAuth.getInstance().signOut();
-                                                                        LoginManager.getInstance().logOut();
-                                                                        Intent intent = new Intent(getContext(), LoginActivity.class);
-                                                                        startActivity(intent);
 
                                                                         user.sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {
                                                                             @Override
@@ -196,6 +192,11 @@ public class EditProfile extends DialogFragment {
                                                                                 Log.d("WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",e.toString());
                                                                             }
                                                                         });
+
+                                                                        mAuth.getInstance().signOut();
+                                                                        LoginManager.getInstance().logOut();
+                                                                        Intent intent = new Intent(getContext(), LoginActivity.class);
+                                                                        startActivity(intent);
                                                                     }
                                                                     else{
                                                                         if(task.getException() instanceof FirebaseNetworkException){
