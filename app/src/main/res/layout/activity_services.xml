@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.example.admin.vkclub.Services">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_height="wrap_content"
+        android:layout_width="fill_parent"
+        android:layout_marginTop="10dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Room Reservation : "
+            android:textColor="#000000"
+            android:layout_marginLeft="15dp"/>
+        <LinearLayout
+            android:layout_weight="0.3"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content" />
+        <Button
+            android:id="@+id/reservation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Book Now"
+            android:background="#1a6930"
+            android:textColor="@color/colorWhite"
+            android:paddingLeft="40dp"
+            android:paddingRight="40dp"
+            android:layout_marginRight="10dp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_height="wrap_content"
+        android:layout_width="fill_parent"
+        android:layout_marginTop="10dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reception: "
+            android:textColor="#000000"
+            android:layout_marginLeft="15dp"/>
+        <LinearLayout
+            android:layout_weight="0.3"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content" />
+        <Button
+            android:id="@+id/reception"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Book Now"
+            android:background="#1a6930"
+            android:textColor="@color/colorWhite"
+            android:paddingLeft="40dp"
+            android:paddingRight="40dp"
+            android:layout_marginRight="10dp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_height="wrap_content"
+        android:layout_width="fill_parent"
+        android:layout_marginTop="10dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Activity : "
+            android:textColor="#000000"
+            android:layout_marginLeft="15dp"/>
+        <LinearLayout
+            android:layout_weight="0.3"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content" />
+        <Button
+            android:id="@+id/activitybtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Book now"
+            android:background="#1a6930"
+            android:textColor="@color/colorWhite"
+            android:paddingLeft="40dp"
+            android:paddingRight="40dp"
+            android:layout_marginRight="10dp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_height="wrap_content"
+        android:layout_width="fill_parent"
+        android:layout_marginTop="10dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pine View Kitchen : "
+            android:textColor="#000000"
+            android:layout_marginLeft="15dp"/>
+        <LinearLayout
+            android:layout_weight="0.3"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content" />
+        <Button
+            android:id="@+id/pineviewkitchen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Book now"
+            android:background="#1a6930"
+            android:textColor="@color/colorWhite"
+            android:paddingLeft="40dp"
+            android:paddingRight="40dp"
+            android:layout_marginRight="10dp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_height="wrap_content"
+        android:layout_width="fill_parent"
+        android:layout_marginTop="10dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Message Service : "
+            android:textColor="#000000"
+            android:layout_marginLeft="15dp"/>
+        <LinearLayout
+            android:layout_weight="0.3"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content" />
+        <Button
+            android:id="@+id/messageservice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Book now"
+            android:background="#1a6930"
+            android:textColor="@color/colorWhite"
+            android:paddingLeft="40dp"
+            android:paddingRight="40dp"
+            android:layout_marginRight="10dp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_height="wrap_content"
+        android:layout_width="fill_parent"
+        android:layout_marginTop="10dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="HouseKeeping : "
+            android:textColor="#000000"
+            android:layout_marginLeft="15dp"/>
+        <LinearLayout
+            android:layout_weight="0.3"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content" />
+        <Button
+            android:id="@+id/housekeeping"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Book now"
+            android:background="#1a6930"
+            android:textColor="@color/colorWhite"
+            android:paddingLeft="40dp"
+            android:paddingRight="40dp"
+            android:layout_marginRight="10dp"/>
+    </LinearLayout>
+
+</LinearLayout>

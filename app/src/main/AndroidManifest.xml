@@ -110,9 +110,6 @@
             android:name=".Dashboard"
             android:theme="@style/noActionBar" />
         <activity
-            android:name=".EditInfo"
-            android:theme="@style/noActionBar" />
-        <activity
             android:name=".ForgetPassword"
             android:theme="@style/noActionBar" />
 
@@ -150,8 +147,11 @@
             android:excludeFromRecents="true"
             android:theme="@style/NoTitleDialog" />
         <activity android:name=".CropImage" />
-        <activity android:name=".WelcomeActivity"
-            android:theme="@style/noActionBar"></activity>
+        <activity
+            android:name=".WelcomeActivity"
+            android:theme="@style/noActionBar" />
+        <activity android:name=".Services" />
+        <activity android:name=".EditProfile"></activity>
     </application>
 
 </manifest>

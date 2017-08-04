@@ -146,7 +146,7 @@ public class Dashboard extends AppCompatActivity {
     private FirebaseAuth.AuthStateListener mAuthListener;
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
-    private Button voipBtn, setting, openNotification, aboutUs;
+    private Button voipBtn, setting, openNotification, aboutUs,mService;
     private Button logoutBtn, opendrawer, appmode, mapButton, membershipBtn, mProvider, mContact, mUpdateprofile, mSetting;
     private EditText mName, mEmail, mCurrentpass;
     private ImageView userPhoto;
@@ -219,7 +219,7 @@ public class Dashboard extends AppCompatActivity {
         appmode = (Button) findViewById(R.id.appMode);
         mapButton = (Button) findViewById(R.id.mapBtn);
         membershipBtn = (Button) findViewById(R.id.membership);
-        mName = (EditText) findViewById(R.id.name1);
+        mName = (EditText) findViewById(R.id.nameprofile);
         mEmail = (EditText) findViewById(R.id.email1);
         mCurrentpass = (EditText) findViewById(R.id.confirmpass1);
         userPhoto = (ImageView) findViewById(R.id.userphoto);
@@ -235,6 +235,7 @@ public class Dashboard extends AppCompatActivity {
         voipBtn = (Button)findViewById(R.id.voip);
         openNotification = (Button)findViewById(R.id.openNotification);
         aboutUs = (Button) findViewById(R.id.about_us);
+        mService = (Button) findViewById(R.id.serviceBtn);
         msg = (TextView)findViewById(R.id.welcomeMsg);
 
         mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.open, R.string.close);
@@ -290,6 +291,7 @@ public class Dashboard extends AppCompatActivity {
         // call navigate
         navigateScreen(mapButton, Map.class);
         navigateScreen(aboutUs, About.class);
+        navigateScreen(mService,Services.class);
 
         voipBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -343,11 +345,8 @@ public class Dashboard extends AppCompatActivity {
                     mProvider.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            AlertDialog.Builder mBuilder = new AlertDialog.Builder(Dashboard.this);
-                            View mView = getLayoutInflater().inflate(R.layout.edit_info, null);
-                            mBuilder.setView(mView);
-                            AlertDialog dialog = mBuilder.create();
-                            dialog.show();
+                            showDialog();
+                            mDrawerLayout.closeDrawer(Gravity.LEFT);
                         }
                     });
                     userPhoto.setOnClickListener(new View.OnClickListener() {
@@ -536,6 +535,26 @@ public class Dashboard extends AppCompatActivity {
                     alertDialog.show();
                 }
             });
+        }
+    }
+
+    public void showDialog() {
+        EditProfile newFragment = new EditProfile();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        if ((getResources().getConfiguration().screenLayout &
+                Configuration.SCREENLAYOUT_SIZE_MASK) ==
+                Configuration.SCREENLAYOUT_SIZE_LARGE) {
+            // The device is using a large layout, so show the fragment as a dialog
+            newFragment.show(fragmentManager, "dialog");
+        } else {
+            // The device is smaller, so show the fragment fullscreen
+            FragmentTransaction transaction = fragmentManager.beginTransaction();
+            // For a little polish, specify a transition animation
+            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+            // To make it fullscreen, use the 'content' root view as the container
+            // for the fragment, which is always the root view for the activity
+            transaction.add(R.id.drawerLayout, newFragment)
+                    .addToBackStack(null).commit();
         }
     }
 
@@ -1146,43 +1165,6 @@ public class Dashboard extends AppCompatActivity {
                             .setPhotoUri(downloadUri)
                             .build();
                     user.updateProfile(profileUpdate);
-
-//                    userPhoto.setDrawingCacheEnabled(true);
-//                    userPhoto.buildDrawingCache();
-//                    Bitmap mbitmap = userPhoto.getDrawingCache();
-//                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//                    mbitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-//                    byte[] mdata = baos.toByteArray();
-//                    StorageReference reference=storage.getReferenceFromUrl("gs://vkclub-c861b.appspot.com/");
-//                    StorageReference imagesRef=reference.child("userprofile-photo/").child(user.getDisplayName()+"_"+user.getUid());
-//                    UploadTask uploadTask = imagesRef.putBytes(mdata);
-//                    uploadTask.addOnFailureListener(new OnFailureListener() {
-//                        @Override
-//                        public void onFailure(@NonNull Exception e) {
-//                            Toast.makeText(Dashboard.this, "Error : "+e.toString(), Toast.LENGTH_SHORT).show();
-//                        }
-//                    }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-//                        @Override
-//                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-//                            Toast.makeText(Dashboard.this, "Uploading Done!!!", Toast.LENGTH_SHORT).show();
-//
-//                            Uri downloadUri = taskSnapshot.getDownloadUrl();
-//                            UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder()
-//                                    .setPhotoUri(downloadUri)
-//                                    .build();
-//                            user.updateProfile(profileUpdate)
-//                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-//                                        @Override
-//                                        public void onComplete(@NonNull Task<Void> task) {
-//                                            if (task.isSuccessful()) {
-//                                                presentDialog("hiii","heeeee");
-//                                            }
-//                                        }
-//                                    });
-//                        }
-//                    });
-//                    Uri downloadUri = taskSnapshot.getDownloadUrl();
-//                    Picasso.with(Dashboard.this).load(downloadUri).into(userPhoto);
                 }
             });
         }

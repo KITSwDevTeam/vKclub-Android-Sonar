@@ -1,12 +1,15 @@
 package com.example.admin.vkclub;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.hardware.camera2.params.Face;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.storage.StorageManager;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -45,32 +48,32 @@ import java.util.Timer;
 import java.util.TimerTask;
 import android.os.Handler;
 
+import static com.example.admin.vkclub.Calling.context;
+
 public class LoginActivity extends AppCompatActivity {
-
     private final String TAG = "LOG TAG";
-
     // Declare Firebase auth
     private FirebaseAuth mAuth = FirebaseAuth.getInstance();
-
     // Buttons Declaration
     private Button signin, createacc, forgetpassword;
-
     // EditText Declaration
     private EditText email, pass;
-
     // TextView Declaration
     private TextView emailValidation, passValidation;
-
     private int submitAttempt = 0;
-
     private ProgressBar spinner;
-
     private CallbackManager callbackManager;
+    SharedPreferences preference;
+    SharedPreferences.Editor editor;
+    String currentpass;
+    private static Context context;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        context = this;
 
         if(Build.VERSION.SDK_INT >= 21){
             Window window = this.getWindow();
@@ -154,9 +157,11 @@ public class LoginActivity extends AppCompatActivity {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 final boolean emailStatus, passStatus;
                 final String getEmail = email.getText().toString();
-                String getPass = pass.getText().toString();
+                final String getPass = pass.getText().toString();
+
 
                 if ((getEmail.indexOf("@") <= 0) || !getEmail.contains(".com") || getEmail.isEmpty()) {
                     emailValidation.setText(getString(R.string.invalid_email));
@@ -181,6 +186,13 @@ public class LoginActivity extends AppCompatActivity {
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             if (task.isSuccessful()) {
                                 FirebaseUser mUser = mAuth.getCurrentUser();
+
+                                preference = PreferenceManager.getDefaultSharedPreferences(context);
+                                editor = preference.edit();
+                                editor.putString("pass", getPass);
+                                System.out.print("YYYYYYYYYYYYYYYYYYYYYYYYYY" +getPass);
+                                editor.commit();
+
                                 boolean emailVerified = mUser.isEmailVerified();
                                 System.out.println("Email Verified :::::::::::::::   " + emailVerified );
                                 if (emailVerified){

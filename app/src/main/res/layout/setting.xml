@@ -24,6 +24,8 @@
         android:background="@color/colorWhite"
         android:layout_marginLeft="10sp"
         android:layout_marginRight="10sp"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
         android:textColor="@color/colorGrey"/>
     <TextView
         android:id="@+id/help"
@@ -31,9 +33,11 @@
         android:layout_height="wrap_content"
         android:text="Help"
         android:layout_marginLeft="10sp"
-        android:layout_marginTop="2dp"
+        android:layout_marginTop="5dp"
         android:layout_marginRight="10sp"
         android:layout_marginBottom="150sp"
+        android:paddingBottom="5dp"
+        android:paddingTop="5dp"
         android:textSize="20sp"
         android:textColor="@color/colorGrey"
         android:background="@color/colorWhite"
