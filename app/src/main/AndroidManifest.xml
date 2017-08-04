@@ -144,14 +144,22 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+        <service android:name=".IncomingCallService">
+            <intent-filter>
+                <action android:name="android.intent.action.PHONE_STATE" />
+                <action android:name="android.Vkclub.INCOMING_CALL" />
+            </intent-filter>
+        </service>
 
         <activity
             android:name=".DialogActivity"
             android:excludeFromRecents="true"
             android:theme="@style/NoTitleDialog" />
         <activity android:name=".CropImage" />
-        <activity android:name=".WelcomeActivity"
-            android:theme="@style/noActionBar"></activity>
+        <activity
+            android:name=".WelcomeActivity"
+            android:theme="@style/noActionBar" />
+        <activity android:name=".Setting"></activity>
     </application>
 
 </manifest>

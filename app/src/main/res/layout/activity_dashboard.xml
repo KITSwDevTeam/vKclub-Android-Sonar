@@ -68,7 +68,7 @@
             android:textAlignment="center"
             android:padding="10dp"
             android:background="@drawable/border_top_and_bottom"
-            android:text="Welcome to vkirirom mobile app"
+            android:text="Welcome to Vkclub"
             android:textColor="@color/colorWhite" />
 
         <LinearLayout
@@ -190,15 +190,63 @@
             android:layout_marginTop="30dp">
 
             <!--Place your ImageView here-->
-            <ImageView
-                android:id="@+id/userphoto"
-                android:layout_width="100sp"
-                android:layout_height="100sp"
-                android:layout_gravity="center_horizontal"
-                android:background="@drawable/profile_background"
-                android:src="@drawable/ic_man" />
-                <!--app:border_color="#EEEEEE"-->
-                <!--app:border_width="4dp"-->
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal">
+
+                <ImageView
+                    android:id="@+id/userphoto"
+                    android:layout_width="120sp"
+                    android:layout_height="120sp"
+                    android:layout_gravity="center_horizontal"
+                    android:background="@drawable/profile_background"
+                    android:src="@drawable/ic_man" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_centerHorizontal="true"
+                    android:layout_centerVertical="true"
+                    android:gravity="center"
+                    android:id="@+id/uploading_spinner">
+
+                    <ProgressBar
+                        style="?android:attr/progressBarStyleLarge"
+                        android:layout_width="50dp"
+                        android:layout_height="31dp"
+                        android:progressDrawable="@drawable/progress_bar"/>
+
+                    <TextView
+                        android:id="@+id/spinning_status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/colorWhite"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_centerHorizontal="true"
+                    android:layout_centerVertical="true"
+                    android:gravity="center"
+                    android:id="@+id/upload_done">
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/ic_tick_inside_circle"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Done"
+                        android:textColor="@color/colorWhite"/>
+                </LinearLayout>
+            </RelativeLayout>
 
 
             <TextView

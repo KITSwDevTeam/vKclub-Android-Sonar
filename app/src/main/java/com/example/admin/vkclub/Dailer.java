@@ -89,7 +89,8 @@ public class Dailer extends Fragment{
                 }else {
                     if (Build.VERSION.SDK_INT >= 23){
                         requestPermissions(new String[]{
-                                Manifest.permission.READ_PHONE_STATE
+                                Manifest.permission.READ_PHONE_STATE,
+                                Manifest.permission.RECORD_AUDIO
                         }, 100);
                     }
                 }
@@ -122,10 +123,10 @@ public class Dailer extends Fragment{
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
         if (requestCode == 100){
-            if (grantResults[0] != PackageManager.PERMISSION_GRANTED){
+            if (grantResults[0] != PackageManager.PERMISSION_GRANTED && grantResults[1] != PackageManager.PERMISSION_GRANTED){
                 AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
                 builder.setTitle("Note");
-                builder.setMessage("You cannot make a call without this permission.");
+                builder.setMessage("You cannot make a call without these permissions.");
                 builder.setCancelable(true);
 
                 builder.setPositiveButton(

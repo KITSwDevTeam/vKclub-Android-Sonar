@@ -18,6 +18,13 @@ public class DialogActivity extends AppCompatActivity {
 
         Button okBtn = (Button) findViewById(R.id.ok_btn);
         TextView msg = (TextView) findViewById(R.id.message);
+        TextView titleContent = (TextView) findViewById(R.id.title);
+
+        if (getIntent().getExtras().getString("title") != null || getIntent().getExtras().getString("title") != ""){
+            titleContent.setText(getIntent().getExtras().getString("title"));
+        }else {
+            titleContent.setText("New Notification");
+        }
 
         msg.setText(getIntent().getExtras().getString("message"));
 

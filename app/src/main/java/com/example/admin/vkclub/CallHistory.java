@@ -13,6 +13,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
@@ -33,6 +35,7 @@ public class CallHistory extends Fragment {
 
     private static DataBaseHelper returnDbHelper;
     Dashboard dashboard;
+    private static int selectedRow;
 
     @Nullable
     @Override
@@ -63,9 +66,18 @@ public class CallHistory extends Fragment {
         // get the data and append to the list
         Cursor data = mDataBaseHelper.getData();
         final ArrayList<String> listData = new ArrayList<>();
+        String[] listDataTemp = new String[data.getCount()];
+
+        int i = data.getCount() - 1;
         while (data.moveToNext()){
             // get the value from the database in column then add it to the arrayList
-            listData.add(data.getString(1));
+//            listData.add(data.getString(1));
+            listDataTemp[i] = data.getString(1);
+            i--;
+        }
+
+        for (int j=0; j<data.getCount(); j++){
+            listData.add(listDataTemp[j]);
         }
 
         //instantiate custom adapter
@@ -75,10 +87,29 @@ public class CallHistory extends Fragment {
 //        final ArrayAdapter listAdapter = new ArrayAdapter<String>(getActivity(), R.layout.activity_listview, listData);
         mListView.setAdapter(adapter);
 
+        final Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.slide_out);
+        animation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                listData.remove(selectedRow);
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+
         // set an onItemClickListener to the ListView
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, final int position, long id) {
+            public void onItemClick(final AdapterView<?> adapterView, final View view, final int position, long id) {
                 String name = adapterView.getItemAtPosition(position).toString();
                 Log.d(TAG, "onItemClick: You Clicked on " + name);
 
@@ -91,7 +122,6 @@ public class CallHistory extends Fragment {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         // the user clicked on colors[which]
-                        toastMessage("the user clicked on colors " + options[which]);
                         if (which == 0){
                             Intent in = new Intent(getContext(), Calling.class);
                             in.putExtra("STATE", "DAILING");
@@ -107,6 +137,8 @@ public class CallHistory extends Fragment {
 
                             if (itemID > -1){
                                 Log.d(TAG, "onItemClick: The ID is: " + itemID);
+                                view.startAnimation(animation);
+                                selectedRow = position;
                                 mDataBaseHelper.deleteSpecificItem(itemID, extension);
                             }else {
                                 toastMessage("No ID associated with that name");

@@ -88,6 +88,10 @@ public class IncomingCallReceiver extends BroadcastReceiver {
                 public void onCallEstablished(SipAudioCall call) {
                     System.out.println("call established Incoming Call Receiver");
                     System.out.println("IS IN CALL"+call.isInCall());
+                    call.startAudio();
+                    if(call.isMuted()){
+                        call.toggleMute();
+                    }
 
                     T.schedule(new TimerTask() {
                         @Override

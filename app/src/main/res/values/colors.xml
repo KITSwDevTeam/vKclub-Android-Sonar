@@ -9,7 +9,8 @@
     <color name="colorRed">#c0c0c0</color>
     <color name="colorStatusBar">#1a7043</color>
     <color name="goldenrod">#daa520</color>
-    <color name="sample">#269b5f</color>
+    <color name="sample">#1A6930</color>
+    <color name="darker_white">#F2F3F4</color>
 
     <color name="black_overlay">#66000000</color>
 

@@ -11,7 +11,9 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,14 +27,16 @@ import java.net.URL;
 public class BitmapFromUrl extends AsyncTask<String, Void, Bitmap> {
 
     ImageView bmImage;
+    View uploadingSpinner;
     private Resources mResources;
 
     DataBaseHelper mDataBaseHelper;
     SharedPreferences prefs;
     String imageBlob;
 
-    public BitmapFromUrl(ImageView bmImage) {
+    public BitmapFromUrl(ImageView bmImage, View uploadingSpinner) {
         this.bmImage = bmImage;
+        this.uploadingSpinner = uploadingSpinner;
     }
 
     @Override
@@ -62,6 +66,8 @@ public class BitmapFromUrl extends AsyncTask<String, Void, Bitmap> {
                 editor.putString("get_blob", encodedString);
                 editor.commit();
                 RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(result);
+                uploadingSpinner.setVisibility(View.GONE);
+                bmImage.setImageAlpha(255);
                 bmImage.setImageDrawable(drawable);
             }else {
                 System.out.println("Cannot get bitmap from url" + "Null");

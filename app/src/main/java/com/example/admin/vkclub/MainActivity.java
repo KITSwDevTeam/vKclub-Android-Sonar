@@ -65,7 +65,11 @@ public class MainActivity extends AppCompatActivity {
                 if (isFirstLaunch){
                     if (user != null) {
                         // User is signed in
-                        navigate(Dashboard.class);
+                        if (user.isEmailVerified()){
+                            navigate(Dashboard.class);
+                        }else {
+                            navigate(LoginActivity.class);
+                        }
                     } else {
                         // User is signed out
                         navigate(LoginActivity.class);
