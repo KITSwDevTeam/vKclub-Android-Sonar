@@ -105,10 +105,11 @@
         <activity android:name=".Map" />
         <activity
             android:name=".CreateAccount"
-            android:theme="@style/noActionBar" />
+            android:theme="@style/noActionBar"/>
         <activity
             android:name=".Dashboard"
-            android:theme="@style/noActionBar" />
+            android:theme="@style/noActionBar"
+            android:exported="true"/>
         <activity
             android:name=".ForgetPassword"
             android:theme="@style/noActionBar" />
@@ -141,17 +142,23 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+        <service android:name=".IncomingCallService">
+            <intent-filter>
+                <action android:name="android.intent.action.PHONE_STATE" />
+                <action android:name="android.Vkclub.INCOMING_CALL" />
+            </intent-filter>
+        </service>
 
         <activity
             android:name=".DialogActivity"
             android:excludeFromRecents="true"
             android:theme="@style/NoTitleDialog" />
         <activity android:name=".CropImage" />
+        <activity android:name=".Setting"></activity>
         <activity
             android:name=".WelcomeActivity"
             android:theme="@style/noActionBar" />
         <activity android:name=".Services" />
-        <activity android:name=".EditProfile"></activity>
     </application>
 
 </manifest>

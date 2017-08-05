@@ -25,6 +25,7 @@ class DataBaseHelper extends SQLiteOpenHelper {
 
     private static final String NOTIFICATION_TABLE = "notification_table";
     private static final String MESSAGE = "message";
+    private static final String TITLE = "title";
 
     public DataBaseHelper(Context context) {
         super(context, TABLE_NAME, null, 1);
@@ -34,7 +35,7 @@ class DataBaseHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         String createTable = "CREATE TABLE " + TABLE_NAME + " (ID INTEGER PRIMARY KEY AUTOINCREMENT, " + EXTENSION + " TEXT, " +
                 USERNAME + " TEXT, " + DURATION + " TEXT, " + TIME + " TEXT, " + STATUS + " TEXT)";
-        String createNotification = "CREATE TABLE " + NOTIFICATION_TABLE + " (ID INTEGER PRIMARY KEY AUTOINCREMENT, " + MESSAGE + " TEXT)";
+        String createNotification = "CREATE TABLE " + NOTIFICATION_TABLE + " (ID INTEGER PRIMARY KEY AUTOINCREMENT, " + MESSAGE + " TEXT, " + TITLE + " TEXT, " + TIME + " TEXT)";
         db.execSQL(createTable);
         db.execSQL(createNotification);
     }
@@ -46,10 +47,12 @@ class DataBaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public boolean addNotificationData(String message){
+    public boolean addNotificationData(String message, String title, String time){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
+        contentValues.put(TITLE, title);
         contentValues.put(MESSAGE, message);
+        contentValues.put(TIME, time);
 
         Log.d(TAG, "addData: Adding to NOTIFICATION_TABLE");
         long result = db.insert(NOTIFICATION_TABLE, null, contentValues);

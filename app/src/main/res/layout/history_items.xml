@@ -44,7 +44,6 @@
         android:layout_alignParentBottom="true"
         android:layout_marginRight="5dp"
         android:background="@null"
-        android:src="@drawable/ic_rubbish_bin"
         android:textColor="@color/colorWhite"/>
 
 </RelativeLayout>

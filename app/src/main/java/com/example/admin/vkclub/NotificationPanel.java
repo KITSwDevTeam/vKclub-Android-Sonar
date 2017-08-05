@@ -74,9 +74,18 @@ public class NotificationPanel extends DialogFragment {
         // get the data and append to the list
         Cursor data = mDataBaseHelper.getNotificationData();
         final ArrayList<String> listData = new ArrayList<>();
+        final String[] listDataTemp = new String[data.getCount()];
+
+        int i = data.getCount() - 1;
         while (data.moveToNext()){
             // get the value from the database in column then add it to the arrayList
-            listData.add(data.getString(1));
+//            listData.add(data.getString(1));
+            listDataTemp[i] = data.getString(1);
+            i--;
+        }
+
+        for (int j=0; j<data.getCount(); j++){
+            listData.add(listDataTemp[j]);
         }
 
         //instantiate custom adapter
@@ -87,8 +96,7 @@ public class NotificationPanel extends DialogFragment {
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, final int position, long id) {
-                String name = adapterView.getItemAtPosition(position).toString();
-                Log.d(TAG, "onItemClick: You Clicked on " + name);
+                Log.d(TAG, "onItemClick: You Clicked on " + adapter.getItem(position));
 
 //                final String message = adapterView.getItemAtPosition(position).toString();
 

@@ -25,6 +25,8 @@ public class NotificationItem extends BaseAdapter implements ListAdapter {
     DataBaseHelper mDataBaseHelper;
 
     private static String[] message;
+    private static String[] title;
+    private static String[] sendTime;
 
     public NotificationItem(ArrayList<String> list, Context context){
         this.list = list;
@@ -58,24 +60,33 @@ public class NotificationItem extends BaseAdapter implements ListAdapter {
         }
 
         if (position % 2 == 0){
-            view.setBackgroundColor(ContextCompat.getColor(context, R.color.colorBackground));
+            view.setBackgroundColor(ContextCompat.getColor(context, R.color.colorWhite));
         }else {
-            view.setBackgroundColor(ContextCompat.getColor(context, R.color.sample));
+            view.setBackgroundColor(ContextCompat.getColor(context, R.color.darker_white));
         }
 
         TextView notificaitonMessage = (TextView) view.findViewById(R.id.notification_message);
+        TextView notificationTitle = (TextView) view.findViewById(R.id.notification_title);
+        TextView notificationTime = (TextView) view.findViewById(R.id.notification_time);
+
         Cursor data = mDataBaseHelper.getNotificationData();
         message = new String[data.getCount()];
+        title = new String[data.getCount()];
+        sendTime = new String[data.getCount()];
 
         int i = data.getCount() - 1;
         while (data.moveToNext()){
             message[i] = data.getString(1);
+            title[i] = data.getString(2);
+            sendTime[i] = data.getString(3);
             i--;
         }
 
         for (int j=0; j<data.getCount(); j++){
             if (position == j){
                 notificaitonMessage.setText(message[j]);
+                notificationTitle.setText(title[j]);
+                notificationTime.setText(sendTime[j]);
             }
         }
 

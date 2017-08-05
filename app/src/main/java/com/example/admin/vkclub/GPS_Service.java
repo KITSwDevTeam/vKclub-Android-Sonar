@@ -2,8 +2,10 @@ package com.example.admin.vkclub;
 
 import android.*;
 import android.Manifest;
+import android.app.AlertDialog;
 import android.app.Service;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -17,6 +19,9 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.widget.Toast;
+
+import com.facebook.internal.LockOnGetVariable;
 
 /**
  * Created by admin on 6/19/2017.
@@ -35,6 +40,7 @@ public class GPS_Service extends Service {
 
     @Override
     public void onCreate() {
+        toastMessage("Start GPS_Location service....................................");
         listener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
@@ -57,9 +63,20 @@ public class GPS_Service extends Service {
 
             @Override
             public void onProviderDisabled(String s) {
-                Intent i = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(i);
+//                Intent i = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+//                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                startActivity(i);
+                if (locationManager != null){
+                    locationManager.removeUpdates(listener);
+                }
+                Intent i = new Intent("location_update");
+                i.putExtra("latitude", "unavailable");
+                i.putExtra("longitude", "unavailable");
+                sendBroadcast(i);
+                Log.v("unavailable", "unavailable");
+                toastMessage("Your location setting is disabled. Please enable them under setting to share your current location with Vkclub." +
+                        "\nThank you for using Vkclub.");
+
             }
 
         };
@@ -71,6 +88,23 @@ public class GPS_Service extends Service {
         && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, listener);
             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, listener);
+
+            if (locationManager == null){
+                Intent i = new Intent("location_update");
+                i.putExtra("latitude", "unavailable");
+                i.putExtra("longitude", "unavailable");
+                sendBroadcast(i);
+                Log.v("unavailable", "unavailable");
+            }
+        }else {
+            if (locationManager != null){
+                locationManager.removeUpdates(listener);
+            }
+            Intent i = new Intent("location_update");
+            i.putExtra("latitude", "permission_denied");
+            i.putExtra("longitude", "permission_denied");
+            sendBroadcast(i);
+            Log.v("permission_denied", "permission_denied");
         }
     }
 
@@ -80,5 +114,9 @@ public class GPS_Service extends Service {
         if(locationManager != null){
             locationManager.removeUpdates(listener);
         }
+    }
+
+    private void toastMessage(String text){
+        Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
     }
 }

@@ -26,27 +26,21 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="20dp"
-            android:text="Vkclub"
-            android:textColor="@color/colorWhite"
             android:id="@+id/notification_title"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/notification_message"
-            android:textColor="@color/colorWhite"/>
+            android:id="@+id/notification_message" />
     </LinearLayout>
 
-
     <TextView
-        android:id="@+id/call_time"
+        android:id="@+id/notification_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
         android:layout_marginRight="5dp"
-        android:background="@null"
-        android:src="@drawable/ic_rubbish_bin"
-        android:textColor="@color/colorWhite"/>
+        android:background="@null"/>
 
 </RelativeLayout>

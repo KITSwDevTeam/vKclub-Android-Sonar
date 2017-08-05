@@ -68,6 +68,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.telephony.SmsManager;
+import android.telephony.TelephonyManager;
 import android.text.style.TtsSpan;
 import android.util.Log;
 import android.view.Gravity;
@@ -77,6 +78,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -149,8 +152,9 @@ public class Dashboard extends AppCompatActivity {
     private Button voipBtn, setting, openNotification, aboutUs,mService;
     private Button logoutBtn, opendrawer, appmode, mapButton, membershipBtn, mProvider, mContact, mUpdateprofile, mSetting;
     private EditText mName, mEmail, mCurrentpass;
+    private View uploading, uploadDone;
     private ImageView userPhoto;
-    private TextView userName, userEmail;
+    private TextView userName, userEmail, spinningStatus;
     public static TextView msg;
     private GoogleApiClient mGoogleApiClient;
     private Location mBestReading;
@@ -159,6 +163,7 @@ public class Dashboard extends AppCompatActivity {
     StorageReference gsReference;
     FirebaseStorage storage;
     Uri uri;
+    DbBitmapUtility dbBitmapUtility;
 
 
     public Voip voipClient;
@@ -186,10 +191,7 @@ public class Dashboard extends AppCompatActivity {
     public static final int HANG_UP = 4;
     public Context context;
     public DialogFragment newFragment;
-    public static DialogFragment callFragment;
-    public static FragmentManager fragmentManager;
-    public int CALL_IN = 0;
-    int hours = 0, mins = 0, secs = 0;
+    public static boolean uploadStatus;
 
     private static Context returnContext;
     public static int reg_status = 0;
@@ -200,6 +202,7 @@ public class Dashboard extends AppCompatActivity {
     String imageBlob;
 
     public static Activity dashboardActivity;
+//    Animation anim = AnimationUtils.loadAnimation(this, R.anim.slide_down);
 
     private static final int LOCATION_PERMISSION_GRANTED = 123;
     private static final int LOCATION_PERMISSION_NOT_GRANTED = 321;
@@ -213,6 +216,8 @@ public class Dashboard extends AppCompatActivity {
         setContentView(R.layout.activity_dashboard);
         Dashboard.returnContext = this;
         Dashboard.dashboardActivity = this;
+        prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        dbBitmapUtility = new DbBitmapUtility();
 
         storage = FirebaseStorage.getInstance();
 
@@ -237,6 +242,11 @@ public class Dashboard extends AppCompatActivity {
         aboutUs = (Button) findViewById(R.id.about_us);
         mService = (Button) findViewById(R.id.serviceBtn);
         msg = (TextView)findViewById(R.id.welcomeMsg);
+        spinningStatus = (TextView) findViewById(R.id.spinning_status);
+        uploading = findViewById(R.id.uploading_spinner);
+        uploadDone = findViewById(R.id.upload_done);
+        uploading.setVisibility(View.GONE);
+        uploadDone.setVisibility(View.GONE);
 
         mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.open, R.string.close);
         mDrawerLayout.addDrawerListener(mToggle);
@@ -249,7 +259,9 @@ public class Dashboard extends AppCompatActivity {
             window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorStatusBar));
         }
 
-        runtime_permissions();
+//        runtime_permissions();
+//        initializeManager();
+//        start_gps_service();
 
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -297,9 +309,11 @@ public class Dashboard extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (Build.VERSION.SDK_INT >= 23 && ContextCompat.checkSelfPermission(getAppContext(), Manifest.permission.READ_PHONE_STATE)
+                        != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(getAppContext(), Manifest.permission.RECORD_AUDIO)
                         != PackageManager.PERMISSION_GRANTED){
                     ActivityCompat.requestPermissions(Dashboard.dashboardActivity, new String[]{
-                            Manifest.permission.READ_PHONE_STATE
+                            Manifest.permission.READ_PHONE_STATE,
+                            Manifest.permission.RECORD_AUDIO
                     }, 300);
                 }else {
                     Intent in = new Intent(getAppContext(), Voip.class);
@@ -319,9 +333,23 @@ public class Dashboard extends AppCompatActivity {
 
                 // check if the provider id matches "facebook.com"
                 if (profile.getProviderId().equals("facebook.com")) {
+                    String imageBlob = prefs.getString("get_blob", "");
                     mProvider.setText("FB Linked");
                     facebookUserId = profile.getUid();
-                    setProfilePic("https://graph.facebook.com/" + facebookUserId + "/picture?height=500");
+                    if (imageBlob.length() == 0){
+                        // sometime image loading is freeze so set loading animation for better user experiences
+                        userPhoto.setImageAlpha(0);
+                        uploading.setVisibility(View.VISIBLE);
+                        spinningStatus.setText("Loading...");
+
+                        setProfilePic("https://graph.facebook.com/" + facebookUserId + "/picture?height=500");
+                    }else {
+                        DbBitmapUtility dbBitmapUtility = new DbBitmapUtility();
+                        byte[] imageAsBytes = dbBitmapUtility.getBytesFromString(imageBlob);
+                        Bitmap resultBitmap = dbBitmapUtility.getImage(imageAsBytes);
+                        RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(resultBitmap);
+                        userPhoto.setImageDrawable(drawable);
+                    }
                     mProvider.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
@@ -335,13 +363,24 @@ public class Dashboard extends AppCompatActivity {
                         }
                     });
                 } else if (profile.getProviderId().equals("password")) {
+                    String imageBlob = prefs.getString("get_blob", "");
                     mProvider.setText("Edit");
-                    if (user.getPhotoUrl() == null) {
-                        System.out.println("user.getPhotoUrl() == null");
-                    } else {
-                        setProfilePic(user.getPhotoUrl().toString());
-                    }
+                    if (user.getPhotoUrl() != null) {
+                        if (imageBlob.length() == 0){
+                            // sometime image loading is freeze so set loading animation for better user experiences
+                            userPhoto.setImageAlpha(0);
+                            uploading.setVisibility(View.VISIBLE);
+                            spinningStatus.setText("Loading...");
 
+                            setProfilePic(user.getPhotoUrl().toString());
+                        }else {
+                            DbBitmapUtility dbBitmapUtility = new DbBitmapUtility();
+                            byte[] imageAsBytes = dbBitmapUtility.getBytesFromString(imageBlob);
+                            Bitmap resultBitmap = dbBitmapUtility.getImage(imageAsBytes);
+                            RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(resultBitmap);
+                            userPhoto.setImageDrawable(drawable);
+                        }
+                    }
                     mProvider.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
@@ -357,7 +396,7 @@ public class Dashboard extends AppCompatActivity {
                 }
                 userName.setText(user.getDisplayName());
                 userEmail.setText(user.getEmail());
-                userPhoto.setImageURI(user.getPhotoUrl());
+//                userPhoto.setImageURI(user.getPhotoUrl());
             }
 
             logoutBtn.setOnClickListener(new View.OnClickListener() {
@@ -395,11 +434,13 @@ public class Dashboard extends AppCompatActivity {
             mSetting.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    AlertDialog.Builder mBuilder = new AlertDialog.Builder(Dashboard.this);
-                    View mView = getLayoutInflater().inflate(R.layout.setting, null);
-                    mBuilder.setView(mView);
-                    AlertDialog dialog = mBuilder.create();
-                    dialog.show();
+//                    AlertDialog.Builder mBuilder = new AlertDialog.Builder(Dashboard.this);
+//                    View mView = getLayoutInflater().inflate(R.layout.setting, null);
+//                    mBuilder.setView(mView);
+//                    AlertDialog dialog = mBuilder.create();
+//                    dialog.show();
+                    Intent in = new Intent(getAppContext(), Setting.class);
+                    startActivity(in);
                 }
             });
 
@@ -420,23 +461,32 @@ public class Dashboard extends AppCompatActivity {
                         public void onClick(DialogInterface dialog, int item) {
                             String selectedText = Animals[item].toString();  //Selected item in listview
                             if (selectedText.equals("Reception(+855 78 777 284)")) {
-                                Intent callIntent = new Intent(Intent.ACTION_CALL);
-                                callIntent.setData(Uri.parse("tel:078777284"));
-
-                                if (ActivityCompat.checkSelfPermission(Dashboard.this,
-                                        Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
-                                    return;
+                                if (((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getPhoneType()
+                                        == TelephonyManager.PHONE_TYPE_NONE){
+                                    presentDialog("NO PHONE", "ARE YOU OK?");
+                                }else {
+                                    Intent callIntent = new Intent(Intent.ACTION_CALL);
+                                    callIntent.setData(Uri.parse("tel:078777284"));
+                                    if (ActivityCompat.checkSelfPermission(Dashboard.this,
+                                            Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                                        return;
+                                    }
+                                    startActivity(callIntent);
                                 }
-                                startActivity(callIntent);
                             } else if (selectedText.equals("Reception(+855 96 2222 735)")) {
-                                Intent callIntent = new Intent(Intent.ACTION_CALL);
-                                callIntent.setData(Uri.parse("tel:0962222735"));
+                                if (((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getPhoneType()
+                                        == TelephonyManager.PHONE_TYPE_NONE){
+                                    Intent callIntent = new Intent(Intent.ACTION_CALL);
+                                    callIntent.setData(Uri.parse("tel:0962222735"));
 
-                                if (ActivityCompat.checkSelfPermission(Dashboard.this,
-                                        Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
-                                    return;
+                                    if (ActivityCompat.checkSelfPermission(Dashboard.this,
+                                            Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                                        return;
+                                    }
+                                    startActivity(callIntent);
+                                }else {
+                                    presentDialog("NO PHONE", "ARE YOU OK?");
                                 }
-                                startActivity(callIntent);
                             }
                         }
                     });
@@ -536,6 +586,10 @@ public class Dashboard extends AppCompatActivity {
                 }
             });
         }
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("android.Vkclub.INCOMING_CALL");
+        callReceiver = new IncomingCallReceiver();
+        this.registerReceiver(callReceiver, filter);
     }
 
     public void showDialog() {
@@ -596,19 +650,20 @@ public class Dashboard extends AppCompatActivity {
 //        }
 
         try {
-            SipProfile.Builder builder = new SipProfile.Builder("10009", "192.168.7.251");
-            builder.setPassword("A2apbx10009");
+            SipProfile.Builder builder = new SipProfile.Builder("10018", "192.168.7.251");
+            builder.setPassword("A2apbx10018");
             builder.setPort(sipPort);
             builder.setProtocol("UDP");
             builder.setAutoRegistration(true);
             builder.setSendKeepAlive(true);
             mSipProfile = builder.build();
 
-            Intent i = new Intent();
-            i.setAction("android.Vkclub.INCOMING_CALL");
-            PendingIntent pi = PendingIntent.getBroadcast(this, 0, i, Intent.FILL_IN_DATA);
+
             if (Build.VERSION.SDK_INT >= 23 &&
                     ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED){
+                Intent i = new Intent();
+                i.setAction("android.Vkclub.INCOMING_CALL");
+                PendingIntent pi = PendingIntent.getBroadcast(this, 0, i, Intent.FILL_IN_DATA);
                 mSipManager.open(mSipProfile, pi, null);
 
                 // This listener must be added AFTER manager.open is called,
@@ -617,17 +672,20 @@ public class Dashboard extends AppCompatActivity {
                 mSipManager.setRegistrationListener(mSipProfile.getUriString(), new SipRegistrationListener() {
                     @Override
                     public void onRegistering(String s) {
+                        msg.setText("Registering with SIP server...");
                         System.out.println("1.SET Registering with SIP Server...");
                     }
 
                     @Override
                     public void onRegistrationDone(String s, long l) {
+                        msg.setText("Register with SIP server success.");
                         System.out.println("1.SET Ready");
                         Dashboard.reg_status = 1;
                     }
 
                     @Override
                     public void onRegistrationFailed(String s, int i, String s1) {
+                        msg.setText("Registration failed.");
                         System.out.println("1.SET Registration failed.");
                         Dashboard.reg_status = 2;
                     }
@@ -636,26 +694,36 @@ public class Dashboard extends AppCompatActivity {
                 mSipManager.register(mSipProfile, 240, new SipRegistrationListener() {
                     @Override
                     public void onRegistering(String s) {
+//                        msg.startAnimation(anim);
+                        msg.setText("Registering with SIP server...");
                         Log.d("1.Registering with SIP Server...", "");
                     }
 
                     @Override
                     public void onRegistrationDone(String s, long l) {
+//                        msg.setAnimation(anim);
+                        msg.setText("Register with SIP server success.");
                         Log.d("1.Ready", "");
+                        Dashboard.reg_status = 1;
                     }
 
                     @Override
                     public void onRegistrationFailed(String s, int i, String s1) {
-                        Log.d("1.Registration failed.", "");
+//                        msg.setAnimation(anim);
+                        msg.setText("Registration failed.");
+                        Log.d("1.Register with SIP server failed.", "");
+                        Dashboard.reg_status = 2;
                     }
                 });
                 Dashboard.sipPermission = true;
             }
 
         } catch (ParseException pe) {
+            msg.setText("ParseException thrown");
             Dashboard.reg_status = 2;
             Log.d("ParseException", pe.toString());
         } catch (SipException se){
+            msg.setText("SipException thrown");
             Dashboard.reg_status = 2;
             Log.d("SipException hi", se.toString());
         }
@@ -707,13 +775,15 @@ public class Dashboard extends AppCompatActivity {
                     System.out.println("IS IN CALL DASHBOARD "+call.isInCall());
                     checkStatus(call.getState());
 
-                    T.schedule(new TimerTask() {
-                        @Override
-                        public void run() {
-                            Calling.getInstance().updateCallDuation();
-                            System.out.println("Timer Task......");
-                        }
-                    }, 0, 1000);
+                    if (call.isInCall()){
+                        T.schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                Calling.getInstance().updateCallDuation();
+                                System.out.println("Timer Task......");
+                            }
+                        }, 0, 1000);
+                    }
                 }
 
                 @Override
@@ -873,13 +943,19 @@ public class Dashboard extends AppCompatActivity {
     }
 
     private void setProfilePic(String photoUrl){
-        new BitmapFromUrl(userPhoto).execute(photoUrl);
+        new BitmapFromUrl(userPhoto, uploading).execute(photoUrl);
     }
 
 //    get camera
     private void dispatchTakePictureIntent() {
-        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-        startActivityForResult(cameraIntent, CAMERA_REQUEST);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, new String[]{
+                    Manifest.permission.CAMERA
+            }, 500);
+        }else {
+            Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+            startActivityForResult(cameraIntent, CAMERA_REQUEST);
+        }
     }
 
     //get image from gallery
@@ -917,23 +993,57 @@ public class Dashboard extends AppCompatActivity {
         startService(i);
     }
 
-    private void runtime_permissions() {
-        if (Build.VERSION.SDK_INT >= 23)  {
-            ActivityCompat.requestPermissions(Dashboard.this, new String[]{
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                    Manifest.permission.READ_PHONE_STATE
-            }, 100);
-        }
-    }
-
     private void calcDistance(double currentLat, double currentLon){
         if (currentLat == 0 && currentLon == 0){
             // Permission denied
             this.statusCode = 2;
-            appmode.setText("Unidentified ");
+            appmode.setText("Unidentified");
             appmode.setTextColor(Color.parseColor("#c0c0c0"));
-        }else {
+            appmode.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    presentDialog("Unavailable", "Location Provider unavailable");
+                }
+            });
+        }else if (currentLat == -1 && currentLon == -1){
+            // locationManager null
+            this.statusCode = 2;
+            appmode.setText("Unidentified");
+            appmode.setTextColor(Color.parseColor("#c0c0c0"));
+            appmode.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getAppContext());
+                    builder.setTitle("Permission denied");
+                    builder.setMessage("Vkclub cannot identify your current location due to location permission denied\n" +
+                            "Would you like to enable it ?");
+                    builder.setCancelable(true);
+                    builder.setPositiveButton(
+                            "Enable",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    if (Build.VERSION.SDK_INT >= 23){
+                                        ActivityCompat.requestPermissions(Dashboard.dashboardActivity, new String[]{
+                                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                                Manifest.permission.ACCESS_COARSE_LOCATION
+                                        }, 400);
+                                    }
+                                }
+                            });
+
+                    builder.setNegativeButton(
+                            "Cancel",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+
+                    AlertDialog alert = builder.create();
+                    alert.show();
+                }
+            });
+        } else {
             //Earth Ray
             double R = 6371;
 
@@ -951,9 +1061,21 @@ public class Dashboard extends AppCompatActivity {
                 appmode.setText("IN-Kirirom Mode");
                 appmode.setTextColor(Color.parseColor("#1A6940"));
                 this.statusCode = 0;
+                appmode.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        toastMessage("IN-Kirirom Mode detected\nThank you for using Vkclub.");
+                    }
+                });
             } else if(distance >= 17){
                 appmode.setText("OFF-Kirirom Mode");
                 this.statusCode = 1;
+                appmode.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        toastMessage("OFF-Kirirom Mode detected\nThank you for using Vkclub.");
+                    }
+                });
             } else {
                 presentDialog("Technical Error", "Location update failed!");
             }
@@ -962,29 +1084,80 @@ public class Dashboard extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        System.out.println("onRequestPermissionsResult");
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        // in on create
         if (requestCode == 100){
             if (grantResults.length > 0){
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED){
                     start_gps_service();
                 }else {
-                    System.out.println("LOCATION PERMISSION DENIED BRO" + " WHAT DO YOU WANT ? " + grantResults.length);
-                }
+                    appmode.setText("Unidentified");
+                    appmode.setTextColor(Color.parseColor("#c0c0c0"));
+                    appmode.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(getAppContext());
+                            builder.setTitle("Permission denied");
+                            builder.setMessage("Vkclub cannot identify your current location due to location permission denied\n" +
+                                    "Would you like to enable it ?");
+                            builder.setCancelable(true);
+                            builder.setPositiveButton(
+                                    "Enable",
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            if (Build.VERSION.SDK_INT >= 23){
+                                                ActivityCompat.requestPermissions(Dashboard.dashboardActivity, new String[]{
+                                                        Manifest.permission.ACCESS_FINE_LOCATION,
+                                                        Manifest.permission.ACCESS_COARSE_LOCATION
+                                                }, 400);
+                                            }
+                                        }
+                                    });
 
-                if (grantResults[2] == PackageManager.PERMISSION_GRANTED){
-                    initializeManager();
-                }else {
-                    presentDialog("Permission Denied", "Please allow phone permission in the app setting in" +
-                            " order to use Vkclub call service.\nThank you for using Vkclub");
+                            builder.setNegativeButton(
+                                    "Cancel",
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            dialog.cancel();
+                                        }
+                                    });
+
+                            AlertDialog alert = builder.create();
+                            alert.show();
+                        }
+                    });
                 }
             }
         }
 
-        if (requestCode == 300){
+        if (requestCode == 200){
+            if (grantResults.length > 0){
+                if (grantResults[0] != PackageManager.PERMISSION_GRANTED && grantResults[1] != PackageManager.PERMISSION_GRANTED){
+                    presentDialog("Note", "You cannot make a call without using these permissions.");
+                }
+            }else {
+                initializeManager();
+            }
+        }
+
+        // if user clicked on appmode
+        if (requestCode == 400){
+            if (grantResults.length > 0){
+                if (grantResults[0] != PackageManager.PERMISSION_GRANTED && grantResults[1] != PackageManager.PERMISSION_GRANTED){
+                    presentDialog("Denied", "You denied location permission\nVkclub cannot obtain your current location and some " +
+                            "features might not work due to this denial.\nThank you for using Vkclub.");
+                }
+            }
+        }
+
+        if (requestCode == 500){
             if (grantResults.length > 0){
                 if (grantResults[0] != PackageManager.PERMISSION_GRANTED){
-                    presentDialog("Note", "You cannot make a call without using this permission.");
+                    presentDialog("Permission Denied", "You denied camera permission.Vkclub cannot open camera without this permissions.\nThank you for using Vkclub.");
+                }else {
+                    Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                    startActivityForResult(cameraIntent, CAMERA_REQUEST);
                 }
             }
         }
@@ -1009,19 +1182,43 @@ public class Dashboard extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-//        if (mGoogleApiClient != null) {
-//            mGoogleApiClient.connect();
-//        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, new String[]{
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+            }, 100);
+        }else {
+            start_gps_service();
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, new String[]{
+                    Manifest.permission.READ_PHONE_STATE,
+                    Manifest.permission.RECORD_AUDIO
+            }, 200);
+        }else {
+            initializeManager();
+        }
+
+//        start_gps_service();
+//        initializeManager();
         Dashboard.returnContext = this;
 
         if(broadcastReceiver == null){
             broadcastReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
-                    if (intent.getExtras().get("latitude").toString().length() == 0 &&
-                            intent.getExtras().get("longitude").toString().length() == 0){
+                    if (intent.getExtras().get("latitude").toString().equals("unavailable") &&
+                            intent.getExtras().get("longitude").toString().equals("unavailable")){
                         calcDistance(0, 0);
-                    }else {
+                    }else if (intent.getExtras().get("latitude").toString().equals("permission_denied") &&
+                            intent.getExtras().get("longitude").toString().equals("permission_denied")){
+                        calcDistance(-1, -1);
+                    } else {
                         currentLat = Double.parseDouble(intent.getExtras().get("latitude").toString());
                         currentLon = Double.parseDouble(intent.getExtras().get("longitude").toString());
                         message = "Please help! I'm currently facing an emergency problem. Here is my Location: http://maps.google.com/?q=" + currentLat + "," + currentLon;
@@ -1107,8 +1304,7 @@ public class Dashboard extends AppCompatActivity {
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
             Bundle extras = data.getExtras();
             Bitmap image = extras.getParcelable("data");
-            RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(image);
-            userPhoto.setImageDrawable(drawable);
+            upload(image);
         }
 
         if (requestCode == CAMERA_REQUEST && resultCode == RESULT_OK && data != null) {
@@ -1130,19 +1326,19 @@ public class Dashboard extends AppCompatActivity {
 
         if (requestCode == REQUEST_CROP_ICON && resultCode == RESULT_OK && data != null){
             Bitmap photo = (Bitmap) data.getExtras().get("data");
-            RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(photo);
-            userPhoto.setImageDrawable(drawable);
+            upload(photo);
         }
-        upload();
     }
 
     //upload user profile photo to firebase
-    private void upload() {
-
+    private void upload(final Bitmap mbitmap) {
+        toastMessage("Uploading image...");
+        uploading.setVisibility(View.VISIBLE);
+        spinningStatus.setText("Uploading...");
+        userPhoto.setImageAlpha(50);
         if(userPhoto != null){
             userPhoto.setDrawingCacheEnabled(true);
             userPhoto.buildDrawingCache();
-            Bitmap mbitmap = userPhoto.getDrawingCache();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             mbitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
             byte[] mdata = baos.toByteArray();
@@ -1153,12 +1349,26 @@ public class Dashboard extends AppCompatActivity {
                 @Override
                 public void onFailure(@NonNull Exception e) {
                     Toast.makeText(Dashboard.this, "Error : "+e.toString(), Toast.LENGTH_SHORT).show();
-
                 }
             }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                    Toast.makeText(Dashboard.this, "Uploading Done!!!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(Dashboard.this, "Upload Done!!!", Toast.LENGTH_SHORT).show();
+                    uploading.setVisibility(View.GONE);
+                    uploadDone.setVisibility(View.VISIBLE);
+                    new android.os.Handler().postDelayed(
+                            new Runnable() {
+                                public void run() {
+                                    uploadDone.setVisibility(View.GONE);
+                                    userPhoto.setImageAlpha(255);
+                                }
+                            }, 2500);
+                    SharedPreferences.Editor editor = prefs.edit();
+                    String encodedString = dbBitmapUtility.getString(mbitmap);
+                    editor.putString("get_blob", encodedString);
+                    editor.commit();
+                    RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(mbitmap);
+                    userPhoto.setImageDrawable(drawable);
 
                     Uri downloadUri = taskSnapshot.getDownloadUrl();
                     UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder()
@@ -1219,26 +1429,11 @@ public class Dashboard extends AppCompatActivity {
             // The device is smaller, so show the fragment fullscreen
             FragmentTransaction transaction = fragmentManager.beginTransaction();
             // For a little polish, specify a transition animation
-            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+            transaction.setTransition(FragmentTransaction.TRANSIT_ENTER_MASK);
             // To make it fullscreen, use the 'content' root view as the container
             // for the fragment, which is always the root view for the activity
             transaction.add(R.id.drawerLayout, newFragment)
                     .addToBackStack(null).commit();
-        }
-    }
-
-    private Bitmap bitMapFromUrl(String urlString){
-        try {
-            URL url = new URL(urlString);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setDoInput(true);
-            connection.connect();
-            InputStream input = connection.getInputStream();
-            Bitmap myBitmap = BitmapFactory.decodeStream(input);
-            return myBitmap;
-        } catch (IOException e) {
-            // Log exception
-            return null;
         }
     }
 

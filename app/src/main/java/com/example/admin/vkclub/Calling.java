@@ -4,12 +4,15 @@ import android.app.Activity;
 import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.sip.SipException;
+import android.os.Build;
 import android.provider.Settings;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.format.DateFormat;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -48,6 +51,13 @@ public class Calling extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calling);
+
+        if(Build.VERSION.SDK_INT >= 21){
+            Window window = this.getWindow();
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorStatusBar));
+        }
 
         calendar = Calendar.getInstance();
         callingActivity = this;
@@ -93,10 +103,6 @@ public class Calling extends AppCompatActivity {
 
                 try {
                     dashboard.audioCall.answerCall(30);
-                    dashboard.audioCall.startAudio();
-                    if(dashboard.audioCall.isMuted()){
-                        dashboard.audioCall.toggleMute();
-                    }
                 } catch (SipException e) {
                     e.printStackTrace();
                     dashboard.presentDialog("Error!", "Unable to answer. Please check with vKirirom Receptionists.");

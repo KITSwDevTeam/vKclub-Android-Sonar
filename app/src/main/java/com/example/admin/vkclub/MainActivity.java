@@ -25,6 +25,7 @@ import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserInfo;
 
 import android.os.Handler;
 
@@ -64,8 +65,20 @@ public class MainActivity extends AppCompatActivity {
                 isFirstLaunch = preferences.getBoolean("FirstLaunch", false);
                 if (isFirstLaunch){
                     if (user != null) {
-                        // User is signed in
-                        navigate(Dashboard.class);
+                        for (UserInfo profile : user.getProviderData()) {
+                            // Id of the provider (ex: google.com)
+                            String providerId = profile.getProviderId();
+                            if (providerId.equals("facebook.com")){
+                                navigate(Dashboard.class);
+                            }else {
+                                // User is signed in
+                                if (user.isEmailVerified()){
+                                    navigate(Dashboard.class);
+                                }else {
+                                    navigate(LoginActivity.class);
+                                }
+                            }
+                        };
                     } else {
                         // User is signed out
                         navigate(LoginActivity.class);

@@ -1,10 +1,14 @@
 package com.example.admin.vkclub;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.sip.SipAudioCall;
 import android.net.sip.SipException;
@@ -16,10 +20,12 @@ import android.os.Parcelable;
 import android.os.PersistableBundle;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.FragmentTransaction;
@@ -45,12 +51,15 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.Manifest;
 
 import com.google.android.gms.maps.model.Dash;
 
 import java.text.ParseException;
 
 public class Voip extends AppCompatActivity {
+
+    private static int requestCount = 0;
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -66,9 +75,9 @@ public class Voip extends AppCompatActivity {
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
-    String test = "";
     public Context context;
     public Dashboard dashboard;
+    public static Activity voipActivity;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -78,6 +87,8 @@ public class Voip extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitleTextColor(ContextCompat.getColor(this, R.color.colorWhite));
+
+        voipActivity = this;
 
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
@@ -137,6 +148,49 @@ public class Voip extends AppCompatActivity {
                     return "HISTORY";
             }
             return null;
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        requestCount = requestCount + 1;
+        if (requestCount == 1){
+            if (Build.VERSION.SDK_INT >= 23 && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
+                    != PackageManager.PERMISSION_GRANTED){
+                ActivityCompat.requestPermissions(this, new String[]{
+                        Manifest.permission.READ_PHONE_STATE
+                }, 100);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 100){
+            if (grantResults.length > 0){
+                if (grantResults[0] != PackageManager.PERMISSION_GRANTED){
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("Note");
+                    builder.setMessage("You cannot make a call without this permission.");
+                    builder.setCancelable(true);
+
+                    builder.setPositiveButton(
+                            "Close",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    finish();
+                                    dialog.cancel();
+                                }
+                            });
+
+                    AlertDialog alert = builder.create();
+                    alert.show();
+                }else {
+                    finish();
+                }
+            }
         }
     }
 

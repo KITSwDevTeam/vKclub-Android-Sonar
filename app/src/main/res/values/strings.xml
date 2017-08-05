@@ -43,4 +43,8 @@
     <string name="title_activity_about_us">about_us</string>
     <string name="action_settings">Settings</string>
     <string name="section_format">Hello World from section: %1$d</string>
+    <string name="welcome_intro">Maximize your experience in\nvKirirom Pine Resort. Discover,\nExplore, and Meet people\nwith Vkclub.</string>
+    <string name="sos_intro">Emergency SOS button guarantees users safety and help when lost in the forest or in dangerous situation.</string>
+    <string name="mode_intro">Experience all functions of the app within ON_Kirirom mode, while some including SOS, group chat are restricted for OFF-Kirirom user.</string>
+    <string name="map_intro">Digitalized map designed to help user get in-touch with our vKirirom Pine Resort Services and Facilities.</string>
 </resources>
