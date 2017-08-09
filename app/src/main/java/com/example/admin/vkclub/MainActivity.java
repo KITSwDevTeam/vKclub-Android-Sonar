@@ -68,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
                         for (UserInfo profile : user.getProviderData()) {
                             // Id of the provider (ex: google.com)
                             String providerId = profile.getProviderId();
+                            System.out.println("lllllllllllllllllllllllllllllllllllllllll   " + providerId);
                             if (providerId.equals("facebook.com")){
                                 navigate(Dashboard.class);
                             }else {
@@ -78,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
                                     navigate(LoginActivity.class);
                                 }
                             }
-                        };
+                        }
                     } else {
                         // User is signed out
                         navigate(LoginActivity.class);
@@ -89,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
                     editor.commit();
                     Intent intent = new Intent(context, WelcomeActivity.class);
                     startActivity(intent);
+                    finish();
                 }
             }
         };

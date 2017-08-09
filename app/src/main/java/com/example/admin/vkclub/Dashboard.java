@@ -8,6 +8,8 @@ import android.app.Dialog;
 import android.graphics.Matrix;
 import android.media.Image;
 import android.media.MediaPlayer;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.sip.SipSession;
 import android.os.SystemClock;
 import android.support.v4.app.DialogFragment;
@@ -200,15 +202,7 @@ public class Dashboard extends AppCompatActivity {
 
     SharedPreferences prefs;
     String imageBlob;
-
     public static Activity dashboardActivity;
-//    Animation anim = AnimationUtils.loadAnimation(this, R.anim.slide_down);
-
-    private static final int LOCATION_PERMISSION_GRANTED = 123;
-    private static final int LOCATION_PERMISSION_NOT_GRANTED = 321;
-    private static final int SIP_PERMISSION_GRANTED = 789;
-    private static final int SIP_PERMISSION_NOT_GRANTED = 987;
-    private static final int ALL_PERMISSION_GRANTED = 99999;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -248,8 +242,33 @@ public class Dashboard extends AppCompatActivity {
         uploading.setVisibility(View.GONE);
         uploadDone.setVisibility(View.GONE);
 
+        mAuth = FirebaseAuth.getInstance();
+        user = mAuth.getCurrentUser();
         mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.open, R.string.close);
         mDrawerLayout.addDrawerListener(mToggle);
+        mDrawerLayout.addDrawerListener(new DrawerLayout.DrawerListener() {
+            @Override
+            public void onDrawerSlide(View drawerView, float slideOffset) {
+
+            }
+
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                if (user != null){
+                    updateSideMenuContent(); // to update side-menu content such as user's name, profile picture and etc...
+                }
+            }
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+
+            }
+
+            @Override
+            public void onDrawerStateChanged(int newState) {
+
+            }
+        });
         mToggle.syncState();
 
         if (Build.VERSION.SDK_INT >= 21) {
@@ -259,18 +278,12 @@ public class Dashboard extends AppCompatActivity {
             window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorStatusBar));
         }
 
-//        runtime_permissions();
-//        initializeManager();
-//        start_gps_service();
-
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
-                if (user != null) {
-                    // User is signed in
-                } else {
-                    // User is signed out
+                if (user == null) {
+
                 }
             }
         };
@@ -289,16 +302,17 @@ public class Dashboard extends AppCompatActivity {
             }
         });
 
-//        setting = (Button)findViewById(R.id.setting);
-//        setting.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                getFragmentManager().beginTransaction().replace(android.R.id.content, new SipSettings()).commit();
-//            }
-//        });
-
         // upcoming module
         upComingModule(membershipBtn, "membership");
+
+        msg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+                startActivity(getIntent());
+                overridePendingTransition(0, 0);
+            }
+        });
 
         // call navigate
         navigateScreen(mapButton, Map.class);
@@ -322,83 +336,7 @@ public class Dashboard extends AppCompatActivity {
             }
         });
 
-        mAuth = FirebaseAuth.getInstance();
-        user = mAuth.getCurrentUser();
-        Log.d("++++++++++++++TAG+++++++++++++", user.getProviderId());
-
         if (user != null) {
-            // find the Facebook profile and get the user's id
-            for (UserInfo profile : user.getProviderData()) {
-                Log.v(">>>>>>>>>>>>>>>>>>>>>>>>>", profile.getProviderId());
-
-                // check if the provider id matches "facebook.com"
-                if (profile.getProviderId().equals("facebook.com")) {
-                    String imageBlob = prefs.getString("get_blob", "");
-                    mProvider.setText("FB Linked");
-                    facebookUserId = profile.getUid();
-                    if (imageBlob.length() == 0){
-                        // sometime image loading is freeze so set loading animation for better user experiences
-                        userPhoto.setImageAlpha(0);
-                        uploading.setVisibility(View.VISIBLE);
-                        spinningStatus.setText("Loading...");
-
-                        setProfilePic("https://graph.facebook.com/" + facebookUserId + "/picture?height=500");
-                    }else {
-                        DbBitmapUtility dbBitmapUtility = new DbBitmapUtility();
-                        byte[] imageAsBytes = dbBitmapUtility.getBytesFromString(imageBlob);
-                        Bitmap resultBitmap = dbBitmapUtility.getImage(imageAsBytes);
-                        RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(resultBitmap);
-                        userPhoto.setImageDrawable(drawable);
-                    }
-                    mProvider.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            Toast.makeText(getApplicationContext(), "You are current linked your profile with facebook account", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                    userPhoto.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            changeprofile();
-                        }
-                    });
-                } else if (profile.getProviderId().equals("password")) {
-                    String imageBlob = prefs.getString("get_blob", "");
-                    mProvider.setText("Edit");
-                    if (user.getPhotoUrl() != null) {
-                        if (imageBlob.length() == 0){
-                            // sometime image loading is freeze so set loading animation for better user experiences
-                            userPhoto.setImageAlpha(0);
-                            uploading.setVisibility(View.VISIBLE);
-                            spinningStatus.setText("Loading...");
-
-                            setProfilePic(user.getPhotoUrl().toString());
-                        }else {
-                            DbBitmapUtility dbBitmapUtility = new DbBitmapUtility();
-                            byte[] imageAsBytes = dbBitmapUtility.getBytesFromString(imageBlob);
-                            Bitmap resultBitmap = dbBitmapUtility.getImage(imageAsBytes);
-                            RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(resultBitmap);
-                            userPhoto.setImageDrawable(drawable);
-                        }
-                    }
-                    mProvider.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            showDialog();
-                            mDrawerLayout.closeDrawer(Gravity.LEFT);
-                        }
-                    });
-                    userPhoto.setOnClickListener(new View.OnClickListener() {
-                        public void onClick(View view) {
-                            changeprofile();
-                        }
-                    });
-                }
-                userName.setText(user.getDisplayName());
-                userEmail.setText(user.getEmail());
-//                userPhoto.setImageURI(user.getPhotoUrl());
-            }
-
             logoutBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -434,11 +372,6 @@ public class Dashboard extends AppCompatActivity {
             mSetting.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-//                    AlertDialog.Builder mBuilder = new AlertDialog.Builder(Dashboard.this);
-//                    View mView = getLayoutInflater().inflate(R.layout.setting, null);
-//                    mBuilder.setView(mView);
-//                    AlertDialog dialog = mBuilder.create();
-//                    dialog.show();
                     Intent in = new Intent(getAppContext(), Setting.class);
                     startActivity(in);
                 }
@@ -478,7 +411,6 @@ public class Dashboard extends AppCompatActivity {
                                         == TelephonyManager.PHONE_TYPE_NONE){
                                     Intent callIntent = new Intent(Intent.ACTION_CALL);
                                     callIntent.setData(Uri.parse("tel:0962222735"));
-
                                     if (ActivityCompat.checkSelfPermission(Dashboard.this,
                                             Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
                                         return;
@@ -502,94 +434,88 @@ public class Dashboard extends AppCompatActivity {
         sos.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    final AlertDialog.Builder alertDialog = new AlertDialog.Builder(Dashboard.this);
-                    alertDialog.setTitle("Please help! ");
-                    alertDialog.setMessage("I'm currently facing an emergency problem.");
-                    AlertDialog.Builder confirm = alertDialog.setPositiveButton("Confirm",
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    String SENT = "SMS_SENT";
-                                    String DELIVERED = "SMS_DELIVERED";
+                final AlertDialog.Builder alertDialog = new AlertDialog.Builder(Dashboard.this);
+                alertDialog.setTitle("Please help! ");
+                alertDialog.setMessage("I'm currently facing an emergency problem.");
+                AlertDialog.Builder confirm = alertDialog.setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        String SENT = "SMS_SENT";
+                        String DELIVERED = "SMS_DELIVERED";
+                        PendingIntent sentPI = PendingIntent.getBroadcast(getApplicationContext(), 0, new Intent(SENT), 0);
+                        PendingIntent deliveredPI = PendingIntent.getBroadcast(getApplicationContext(), 0, new Intent(DELIVERED), 0);
 
-                                    PendingIntent sentPI = PendingIntent.getBroadcast(getApplicationContext(), 0,
-                                            new Intent(SENT), 0);
-
-                                    PendingIntent deliveredPI = PendingIntent.getBroadcast(getApplicationContext(), 0,
-                                            new Intent(DELIVERED), 0);
-
-                                    //---when the SMS has been sent---
-                                    registerReceiver(new BroadcastReceiver() {
-                                        @Override
-                                        public void onReceive(Context arg0, Intent arg1) {
-                                            switch (getResultCode()) {
-                                                case Activity.RESULT_OK:
-                                                    Toast.makeText(getBaseContext(), "SMS sent",
-                                                            Toast.LENGTH_SHORT).show();
-                                                    break;
-                                                case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
-                                                    Toast.makeText(getBaseContext(), "Generic failure",
-                                                            Toast.LENGTH_SHORT).show();
-                                                    break;
-                                                case SmsManager.RESULT_ERROR_NO_SERVICE:
-                                                    Toast.makeText(getBaseContext(), "No service",
-                                                            Toast.LENGTH_SHORT).show();
-                                                    break;
-                                            }
-                                        }
-                                    }, new IntentFilter(SENT));
-
-                                    //---when the SMS has been delivered---
-                                    registerReceiver(new BroadcastReceiver() {
-                                        @Override
-                                        public void onReceive(Context arg0, Intent arg1) {
-                                            switch (getResultCode()) {
-                                                case Activity.RESULT_OK:
-                                                    Toast.makeText(getBaseContext(), "SMS delivered",
-                                                            Toast.LENGTH_SHORT).show();
-                                                    break;
-                                                case Activity.RESULT_CANCELED:
-                                                    Toast.makeText(getBaseContext(), "SMS not delivered",
-                                                            Toast.LENGTH_SHORT).show();
-                                                    break;
-                                            }
-                                        }
-                                    }, new IntentFilter(DELIVERED));
-
-                                    SmsManager sms = SmsManager.getDefault();
-                                    if (statusCode == 0)
-                                        sms.sendTextMessage(phoneNumber, null, message, sentPI, deliveredPI);
-                                    else if (statusCode == 1) {
-                                        String title = "Off Kirirom Mode";
-                                        presentDialog(title, "This function is not accessible outside kirirom area.");
-                                    } else if (statusCode == 2) {
-                                        String title = "Unidentified";
-                                        presentDialog(title, "Location failed. Turn on Location Service to Determine your current location for App Mode: \\n Setting > Location");
-                                    } else {
-                                        String title = "Error";
-                                        presentDialog(title, "Invalid");
-
-                                    }
+                        //---when the SMS has been sent---
+                        registerReceiver(new BroadcastReceiver() {
+                            @Override
+                            public void onReceive(Context arg0, Intent arg1) {
+                                switch (getResultCode()) {
+                                    case Activity.RESULT_OK:
+                                        Toast.makeText(getBaseContext(), "SMS sent", Toast.LENGTH_SHORT).show();
+                                        break;
+                                    case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
+                                        Toast.makeText(getBaseContext(), "Generic failure", Toast.LENGTH_SHORT).show();
+                                        break;
+                                    case SmsManager.RESULT_ERROR_NO_SERVICE:
+                                        Toast.makeText(getBaseContext(), "No service", Toast.LENGTH_SHORT).show();
+                                        break;
                                 }
-                            });
+                            }
+                        }, new IntentFilter(SENT));
 
-                    // Setting Negative "NO" Button
-                    alertDialog.setNegativeButton("Cancel",
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    // Write your code here to execute after dialog
-                                    Toast.makeText(getApplicationContext(), "You clicked on Cancel", Toast.LENGTH_SHORT).show();
-                                    dialog.cancel();
+                        //---when the SMS has been delivered---
+                        registerReceiver(new BroadcastReceiver() {
+                            @Override
+                            public void onReceive(Context arg0, Intent arg1) {
+                                switch (getResultCode()) {
+                                    case Activity.RESULT_OK:
+                                        Toast.makeText(getBaseContext(), "SMS delivered", Toast.LENGTH_SHORT).show();
+                                        break;
+                                    case Activity.RESULT_CANCELED:
+                                        Toast.makeText(getBaseContext(), "SMS not delivered", Toast.LENGTH_SHORT).show();
+                                        break;
                                 }
-                            });
-                    // Showing Alert Message
-                    alertDialog.show();
-                }
-            });
+                            }
+                        }, new IntentFilter(DELIVERED));
+
+                        SmsManager sms = SmsManager.getDefault();
+                        if (statusCode == 0)
+                            sms.sendTextMessage(phoneNumber, null, message, sentPI, deliveredPI);
+                        else if (statusCode == 1) {
+                            String title = "Off Kirirom Mode";
+                            presentDialog(title, "This function is not accessible outside kirirom area.");
+                        } else if (statusCode == 2) {
+                            String title = "Unidentified";
+                            presentDialog(title, "Location failed. Turn on Location Service to Determine your current location for App Mode: \\n Setting > Location");
+                        } else {
+                            String title = "Error";
+                            presentDialog(title, "Invalid");
+                        }
+                    }
+                });
+
+                // Setting Negative "NO" Button
+                alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Write your code here to execute after dialog
+                        Toast.makeText(getApplicationContext(), "You clicked on Cancel", Toast.LENGTH_SHORT).show();
+                        dialog.cancel();
+                    }
+                });
+                // Showing Alert Message
+                alertDialog.show();
+            }
+        });
         }
         IntentFilter filter = new IntentFilter();
         filter.addAction("android.Vkclub.INCOMING_CALL");
         callReceiver = new IncomingCallReceiver();
         this.registerReceiver(callReceiver, filter);
+    }
+
+    private void refreshActivity() {
+        finish();
+        startActivity(getIntent());
+        overridePendingTransition(0, 0);
     }
 
     public void showDialog() {
@@ -628,39 +554,25 @@ public class Dashboard extends AppCompatActivity {
      * send SIP calls to for your SIP address.
      */
     public void initializeLocalProfile() {
-
-        if (mSipManager == null) {
-            System.out.println("mSipManager == null");
-            return;
-        }
-
         if (mSipProfile != null) {
-            System.out.println("mSipProfile != null");
             closeLocalProfile();
         }
 
-//        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-//        sipUsername = prefs.getString("namePref", "");
-//        sipDomain = prefs.getString("domainPref", "");
-//        sipPassword = prefs.getString("passPref", "");
-//
-//        if (sipUsername.length() == 0 || sipDomain.length() == 0 || sipPassword.length() == 0) {
-//            getFragmentManager().beginTransaction().replace(android.R.id.content, new SipSettings()).commit();
-//            return;
-//        }
+        if (mSipManager == null) {
+            return;
+        }
 
-        try {
-            SipProfile.Builder builder = new SipProfile.Builder("10018", "192.168.7.251");
-            builder.setPassword("A2apbx10018");
-            builder.setPort(sipPort);
-            builder.setProtocol("UDP");
-            builder.setAutoRegistration(true);
-            builder.setSendKeepAlive(true);
-            mSipProfile = builder.build();
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_DENIED
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_DENIED){
+            try {
+                SipProfile.Builder builder = new SipProfile.Builder("10008", "192.168.7.251");
+                builder.setPassword("A2apbx10008");
+                builder.setPort(sipPort);
+                builder.setProtocol("UDP");
+                builder.setAutoRegistration(true);
+                builder.setSendKeepAlive(true);
+                mSipProfile = builder.build();
 
-
-            if (Build.VERSION.SDK_INT >= 23 &&
-                    ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED){
                 Intent i = new Intent();
                 i.setAction("android.Vkclub.INCOMING_CALL");
                 PendingIntent pi = PendingIntent.getBroadcast(this, 0, i, Intent.FILL_IN_DATA);
@@ -668,7 +580,6 @@ public class Dashboard extends AppCompatActivity {
 
                 // This listener must be added AFTER manager.open is called,
                 // Otherwise the methods aren't guaranteed to fire.
-
                 mSipManager.setRegistrationListener(mSipProfile.getUriString(), new SipRegistrationListener() {
                     @Override
                     public void onRegistering(String s) {
@@ -694,14 +605,12 @@ public class Dashboard extends AppCompatActivity {
                 mSipManager.register(mSipProfile, 240, new SipRegistrationListener() {
                     @Override
                     public void onRegistering(String s) {
-//                        msg.startAnimation(anim);
                         msg.setText("Registering with SIP server...");
                         Log.d("1.Registering with SIP Server...", "");
                     }
 
                     @Override
                     public void onRegistrationDone(String s, long l) {
-//                        msg.setAnimation(anim);
                         msg.setText("Register with SIP server success.");
                         Log.d("1.Ready", "");
                         Dashboard.reg_status = 1;
@@ -709,27 +618,25 @@ public class Dashboard extends AppCompatActivity {
 
                     @Override
                     public void onRegistrationFailed(String s, int i, String s1) {
-//                        msg.setAnimation(anim);
                         msg.setText("Registration failed.");
                         Log.d("1.Register with SIP server failed.", "");
                         Dashboard.reg_status = 2;
                     }
                 });
                 Dashboard.sipPermission = true;
+
+            } catch (ParseException pe) {
+                msg.setText("ParseException thrown");
+                Dashboard.reg_status = 2;
+                Log.d("ParseException", pe.toString());
+            } catch (SipException se){
+                msg.setText("SipException thrown");
+                Dashboard.reg_status = 2;
+                Log.d("SipException hi", se.toString());
             }
-
-        } catch (ParseException pe) {
-            msg.setText("ParseException thrown");
-            Dashboard.reg_status = 2;
-            Log.d("ParseException", pe.toString());
-        } catch (SipException se){
-            msg.setText("SipException thrown");
-            Dashboard.reg_status = 2;
-            Log.d("SipException hi", se.toString());
+        }else {
+            msg.setText("ort mean permission");
         }
-
-        System.out.println("INITIALIZE LOCAL PROFILE");
-
     }
 
     /**
@@ -939,7 +846,6 @@ public class Dashboard extends AppCompatActivity {
         AlertDialog alertDialogObject = dialogBuilder.create();
         //Show the dialog
         alertDialogObject.show();
-
     }
 
     private void setProfilePic(String photoUrl){
@@ -1166,8 +1072,6 @@ public class Dashboard extends AppCompatActivity {
     @Override
     protected void onStart() {
         mAuth.addAuthStateListener(mAuthListener);
-        // Connect the client.
-//        mGoogleApiClient.connect();
         super.onStart();
     }
 
@@ -1204,8 +1108,6 @@ public class Dashboard extends AppCompatActivity {
             initializeManager();
         }
 
-//        start_gps_service();
-//        initializeManager();
         Dashboard.returnContext = this;
 
         if(broadcastReceiver == null){
@@ -1317,11 +1219,6 @@ public class Dashboard extends AppCompatActivity {
             cropIntent.putExtra("outputY", 200);
             cropIntent.putExtra("return-data", true);
             startActivityForResult(cropIntent, REQUEST_CROP_ICON);
-
-
-//            Bitmap photo = (Bitmap) data.getExtras().get("data");
-//            RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(photo);
-//            userPhoto.setImageDrawable(drawable);
         }
 
         if (requestCode == REQUEST_CROP_ICON && resultCode == RESULT_OK && data != null){
@@ -1348,7 +1245,7 @@ public class Dashboard extends AppCompatActivity {
             uploadTask.addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
-                    Toast.makeText(Dashboard.this, "Error : "+e.toString(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(Dashboard.this, "Error : "+ e.toString(), Toast.LENGTH_SHORT).show();
                 }
             }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
@@ -1437,4 +1334,74 @@ public class Dashboard extends AppCompatActivity {
         }
     }
 
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
+    private void updateSideMenuContent(){
+        // find the Facebook profile and get the user's id
+        for (UserInfo profile : user.getProviderData()) {
+            // check if the provider id matches "facebook.com"
+            if (profile.getProviderId().equals("facebook.com")) {
+                facebookUserId = profile.getUid();
+                updateUserProfilePicture("https://graph.facebook.com/" + facebookUserId + "/picture?height=500", "FB Linked");
+            } else if (profile.getProviderId().equals("password")) {
+                updateUserProfilePicture(user.getPhotoUrl().toString(), "Edit");
+            }
+            userName.setText(user.getDisplayName());
+            userEmail.setText(user.getEmail());
+        }
+    }
+
+    private void updateUserProfilePicture(String photoUrl, String provider){
+        Log.i("PhotoUrl 000000000000000000000000000000  ", photoUrl);
+        imageBlob = prefs.getString("get_blob", "");
+        mProvider.setText(provider);
+        if (photoUrl != null) {
+            if (isNetworkAvailable()){
+                // sometime image loading is freeze so set loading animation for better user experiences
+                userPhoto.setImageAlpha(0);
+                uploading.setVisibility(View.VISIBLE);
+                spinningStatus.setText("Loading...");
+
+                setProfilePic(photoUrl);
+            }else {
+                // set profile picture when there is no internet connection
+                if (imageBlob.length() != 0){
+                    DbBitmapUtility dbBitmapUtility = new DbBitmapUtility();
+                    byte[] imageAsBytes = dbBitmapUtility.getBytesFromString(imageBlob);
+                    Bitmap resultBitmap = dbBitmapUtility.getImage(imageAsBytes);
+                    RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(resultBitmap);
+                    userPhoto.setImageDrawable(drawable);
+                }
+            }
+        }
+
+        if (provider.equals("Edit")){
+            mProvider.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    showDialog();
+                    mDrawerLayout.closeDrawer(Gravity.LEFT);
+                }
+            });
+        }else {
+            mProvider.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Toast.makeText(getApplicationContext(), "You are current linked your profile with facebook account", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        userPhoto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                changeprofile();
+            }
+        });
+    }
 }
