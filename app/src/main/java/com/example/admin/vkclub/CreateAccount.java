@@ -105,6 +105,14 @@ public class CreateAccount extends AppCompatActivity {
                     nameStatus = true;
                 }
 
+                if (nameValue.length() > 20){
+                    nameValidate.setText("No more than 20 characters.");
+                    nameStatus = false;
+                }else {
+                    nameValidate.setText("");
+                    nameStatus = true;
+                }
+
                 if ((emailValue.indexOf("@") <= 0) || !emailValue.contains(".com") || emailValue.isEmpty()) {
                     emailValidate.setText("Please enter a valid email address.");
                     emailStatus = false;
