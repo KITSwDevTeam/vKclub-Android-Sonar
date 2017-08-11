@@ -949,6 +949,40 @@ public class Dashboard extends AppCompatActivity {
                     alert.show();
                 }
             });
+        }else if (currentLat == -2 && currentLon == -2){
+            this.statusCode = 2;
+            appmode.setText("Unidentified");
+            appmode.setTextColor(Color.parseColor("#c0c0c0"));
+            appmode.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getAppContext());
+                    builder.setTitle("Location provider disabled");
+                    builder.setMessage("Vkclub cannot identify your current location due to location provider disabled\n" +
+                            "Would you like to enable it ?");
+                    builder.setCancelable(true);
+                    builder.setPositiveButton(
+                            "Enable",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    Intent i = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    startActivity(i);
+                                }
+                            });
+
+                    builder.setNegativeButton(
+                            "Cancel",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+
+                    AlertDialog alert = builder.create();
+                    alert.show();
+                }
+            });
         } else {
             //Earth Ray
             double R = 6371;
@@ -1087,15 +1121,52 @@ public class Dashboard extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(this, new String[]{
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-            }, 100);
+        LocationManager locationService = (LocationManager) getSystemService(LOCATION_SERVICE);
+        boolean locationServiceEnabled = locationService.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        if (!locationServiceEnabled){
+            appmode.setText("Unidentified");
+            appmode.setTextColor(Color.parseColor("#c0c0c0"));
+            appmode.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getAppContext());
+                    builder.setTitle("Location provider disabled");
+                    builder.setMessage("Vkclub cannot identify your current location due to location provider disabled\n" +
+                            "Would you like to enable it ?");
+                    builder.setCancelable(true);
+                    builder.setPositiveButton(
+                            "Enable",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    Intent i = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    startActivity(i);
+                                }
+                            });
+
+                    builder.setNegativeButton(
+                            "Cancel",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+
+                    AlertDialog alert = builder.create();
+                    alert.show();
+                }
+            });
         }else {
-            start_gps_service();
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED){
+                ActivityCompat.requestPermissions(this, new String[]{
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                }, 100);
+            }else {
+                start_gps_service();
+            }
         }
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED
@@ -1120,7 +1191,10 @@ public class Dashboard extends AppCompatActivity {
                     }else if (intent.getExtras().get("latitude").toString().equals("permission_denied") &&
                             intent.getExtras().get("longitude").toString().equals("permission_denied")){
                         calcDistance(-1, -1);
-                    } else {
+                    }else if (intent.getExtras().get("latitude").toString().equals("provider_disabled") &&
+                            intent.getExtras().get("longitude").toString().equals("provider_disabled")){
+                        calcDistance(-2, -2);
+                    }else {
                         currentLat = Double.parseDouble(intent.getExtras().get("latitude").toString());
                         currentLon = Double.parseDouble(intent.getExtras().get("longitude").toString());
                         message = "Please help! I'm currently facing an emergency problem. Here is my Location: http://maps.google.com/?q=" + currentLat + "," + currentLon;
@@ -1342,25 +1416,29 @@ public class Dashboard extends AppCompatActivity {
     }
 
     private void updateSideMenuContent(){
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         // find the Facebook profile and get the user's id
-        for (UserInfo profile : user.getProviderData()) {
+        for (UserInfo profile : firebaseUser.getProviderData()) {
             // check if the provider id matches "facebook.com"
             if (profile.getProviderId().equals("facebook.com")) {
                 facebookUserId = profile.getUid();
                 updateUserProfilePicture("https://graph.facebook.com/" + facebookUserId + "/picture?height=500", "FB Linked");
             } else if (profile.getProviderId().equals("password")) {
-                updateUserProfilePicture(user.getPhotoUrl().toString(), "Edit");
+                if (firebaseUser.getPhotoUrl() != null){
+                    updateUserProfilePicture(firebaseUser.getPhotoUrl().toString(), "Edit");
+                }else {
+                    updateUserProfilePicture("", "Edit");
+                }
             }
-            userName.setText(user.getDisplayName());
-            userEmail.setText(user.getEmail());
+            userName.setText(firebaseUser.getDisplayName());
+            userEmail.setText(firebaseUser.getEmail());
         }
     }
 
     private void updateUserProfilePicture(String photoUrl, String provider){
-        Log.i("PhotoUrl 000000000000000000000000000000  ", photoUrl);
         imageBlob = prefs.getString("get_blob", "");
         mProvider.setText(provider);
-        if (photoUrl != null) {
+        if (photoUrl != null && !photoUrl.equals("")) {
             if (isNetworkAvailable()){
                 // sometime image loading is freeze so set loading animation for better user experiences
                 userPhoto.setImageAlpha(0);

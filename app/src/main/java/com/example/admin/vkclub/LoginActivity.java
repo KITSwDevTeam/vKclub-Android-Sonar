@@ -157,21 +157,22 @@ public class LoginActivity extends AppCompatActivity {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 final boolean emailStatus, passStatus;
                 final String getEmail = email.getText().toString();
                 final String getPass = pass.getText().toString();
 
-
-                if ((getEmail.indexOf("@") <= 0) || !getEmail.contains(".com") || getEmail.isEmpty()) {
+                if ((getEmail.indexOf("@") <= 0) || getEmail.length() == 0) {
                     emailValidation.setText(getString(R.string.invalid_email));
                     emailStatus = false;
-                } else {
+                }else if (getEmail.length() == 0){
+                    emailValidation.setText("Please enter your email address.");
+                    emailStatus = false;
+                }else {
                     emailValidation.setText("");
                     emailStatus = true;
                 }
 
-                if ((getPass.length() < 6) || getPass.isEmpty()) {
+                if (getPass.length() < 6) {
                     passValidation.setText(getString(R.string.invalid_password));
                     passStatus = false;
                 } else {
@@ -190,7 +191,6 @@ public class LoginActivity extends AppCompatActivity {
                                 preference = PreferenceManager.getDefaultSharedPreferences(context);
                                 editor = preference.edit();
                                 editor.putString("pass", getPass);
-                                System.out.print("YYYYYYYYYYYYYYYYYYYYYYYYYY" +getPass);
                                 editor.commit();
 
                                 boolean emailVerified = mUser.isEmailVerified();

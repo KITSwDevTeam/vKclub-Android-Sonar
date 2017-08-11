@@ -9,6 +9,8 @@ import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -47,6 +49,7 @@ public class CreateAccount extends AppCompatActivity {
     TextView nameValidate, emailValidate, passValidate, confirmpassValidate, statusText;
 
     private ProgressBar spinner;
+    private static boolean nameStatus, emailStatus, passwordStatus, confirmpassStatus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,26 +90,59 @@ public class CreateAccount extends AppCompatActivity {
             }
         });
 
+        TextWatcher editTextWatcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.length() > 0){
+                    if (!((s.charAt(s.length() - 1) > 64 && s.charAt(s.length() - 1) < 91) ||
+                            (s.charAt(s.length() - 1) > 96 && s.charAt(s.length() - 1) < 123) ||
+                            s.charAt(s.length() - 1) == 32)){
+                        nameValidate.setText("Special characters not allowed.");
+                        new android.os.Handler().postDelayed(
+                                new Runnable() {
+                                    public void run() {
+                                        nameValidate.setText("");
+                                    }
+                                }, 4000);
+                        nameStatus = false;
+                    }else {
+                        nameStatus = true;
+                    }
+
+                    if (s.length() == 20){
+                        nameValidate.setText("Allow only 20 characters.");
+                        new android.os.Handler().postDelayed(
+                                new Runnable() {
+                                    public void run() {
+                                        nameValidate.setText("");
+                                    }
+                                }, 4000);
+                    }
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        };
+        name.addTextChangedListener(editTextWatcher);
+
         signUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String nameValue = name.getText().toString();
-                String emailValue = email.getText().toString();
-                String passwordValue = pass.getText().toString();
-                String confirmpassValue = confirmPass.getText().toString();
+                String nameValue = name.getText().toString().trim();
+                String emailValue = email.getText().toString().trim();
+                String passwordValue = pass.getText().toString().trim();
+                String confirmpassValue = confirmPass.getText().toString().trim();
 
-                boolean nameStatus, emailStatus, passwordStatus, confirmpassStatus;
-
-                if (nameValue.isEmpty()) {
+                if (nameValue.length() == 0) {
                     nameValidate.setText("Please enter your name.");
-                    nameStatus = false;
-                } else {
-                    nameValidate.setText("");
-                    nameStatus = true;
-                }
-
-                if (nameValue.length() > 20){
-                    nameValidate.setText("No more than 20 characters.");
                     nameStatus = false;
                 }else {
                     nameValidate.setText("");
@@ -116,32 +152,34 @@ public class CreateAccount extends AppCompatActivity {
                 if ((emailValue.indexOf("@") <= 0) || !emailValue.contains(".com") || emailValue.isEmpty()) {
                     emailValidate.setText("Please enter a valid email address.");
                     emailStatus = false;
-                } else {
+                }else {
                     emailValidate.setText("");
                     emailStatus = true;
                 }
 
-                if (passwordValue.isEmpty() || passwordValue.length() < 6) {
+                if (passwordValue.length() < 6) {
                     passValidate.setText("Please provide at least 6 characters.");
                     passwordStatus = false;
-                } else {
+                }else {
                     passValidate.setText("");
                     passwordStatus = true;
                 }
 
-                if (confirmpassValue.isEmpty() || confirmpassValue.length() < 6) {
+                if (confirmpassValue.length() < 6) {
                     confirmpassValidate.setText("Please provide at least 6 characters.");
                     confirmpassStatus = false;
-                } else if (!confirmpassValue.equals(passwordValue)) {
+                }else if (!confirmpassValue.equals(passwordValue)) {
                     confirmpassValidate.setText("Passwword does not match!");
                     confirmpassStatus = false;
-                } else {
+                }else {
                     confirmpassValidate.setText("");
                     confirmpassStatus = true;
                 }
 
                 if (nameStatus && emailStatus && passwordStatus && confirmpassStatus) {
                     createAccount(emailValue, passwordValue,nameValue);
+                }else {
+                    presentDialog("Error", "Something went wrong.");
                 }
             }
         });
