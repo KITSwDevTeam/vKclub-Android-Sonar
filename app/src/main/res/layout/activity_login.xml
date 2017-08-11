@@ -99,8 +99,6 @@
             android:layout_marginTop="10dp"
             android:id="@+id/signin"/>
 
-
-
         <com.facebook.login.widget.LoginButton
             android:id="@+id/facebookLoginbtn"
             android:layout_width="match_parent"

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--Accommodation-->
+    <string-array name="accomodation1">
+        <item>http://vkirirom.com/en/details.php#BoreyA</item>
+        <item>http://vkirirom.com/en/details.php#BoreyR</item>
+        <item>http://vkirirom.com/en/details.php#Bungalow</item>
+        <item>http://vkirirom.com/en/details.php#Camping</item>
+        <item>http://vkirirom.com/en/details.php#Khmercottage</item>
+        <item>http://vkirirom.com/en/details.php#Luxurytent</item>
+        <item>http://vkirirom.com/en/details.php#Piperoom</item>
+    </string-array>
+
+    <!--Service-->
+    <string-array name="service1">
+        <item>http://vkirirom.com</item>
+        <item>http://vkirirom.com/en/services.php#</item>
+        <item>http://vkirirom.com</item>
+        <item>http://vkirirom.com/en/detailsFacilities.php</item>
+        <item>http://vkirirom.com</item>
+        <item>http://vkirirom.com</item>
+        <item>http://vkirirom.com/en/gallery.php</item>
+        <item>http://vkirirom.com/en/gallery.php</item>
+        <item>http://vkirirom.com/en/gallery.php</item>
+        <item>http://vkirirom.com/en/gallery.php</item>
+        <item>http://vkirirom.com/en/gallery.php</item>
+        <item>http://vkirirom.com/en/gallery.php</item>
+        <item>http://vkirirom.com/en/gallery.php</item>
+        <item>http://vkirirom.com/en/gallery.php</item>
+        <item>http://vkirirom.com/en/gallery.php</item>
+        <item>http://vkirirom.com/en/gallery.php</item>
+        <item>http://vkirirom.com/en/gallery.php</item>
+        <item>http://vkirirom.com/en/gallery.php</item>
+        <item>http://vkirirom.com/en/gallery.php</item>
+        <item>http://vkirirom.com/en/gallery.php</item>
+        <item>http://vkirirom.com/en/gallery.php</item>
+        <item>http://vkirirom.com/en/gallery.php</item>
+        <item>http://vkirirom.com/en/gallery.php</item>
+        <item>http://vkirirom.com/en/gallery.php</item>
+    </string-array>
+
+    <!--property-->
+    <string-array name="property1">
+        <item>http://property.vkirirom.com/type_a.php</item>
+        <item>http://property.vkirirom.com/type_r.php</item>
+    </string-array>
+</resources>

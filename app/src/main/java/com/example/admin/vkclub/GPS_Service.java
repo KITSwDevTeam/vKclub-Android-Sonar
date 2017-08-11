@@ -63,15 +63,9 @@ public class GPS_Service extends Service {
 
             @Override
             public void onProviderDisabled(String s) {
-//                Intent i = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-//                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//                startActivity(i);
-                if (locationManager != null){
-                    locationManager.removeUpdates(listener);
-                }
                 Intent i = new Intent("location_update");
-                i.putExtra("latitude", "unavailable");
-                i.putExtra("longitude", "unavailable");
+                i.putExtra("latitude", "provider_disabled");
+                i.putExtra("longitude", "provider_disabled");
                 sendBroadcast(i);
                 Log.v("unavailable", "unavailable");
                 toastMessage("Your location setting is disabled. Please enable them under setting to share your current location with Vkclub." +
@@ -96,9 +90,6 @@ public class GPS_Service extends Service {
                 Log.v("unavailable", "unavailable");
             }
         }else {
-            if (locationManager != null){
-                locationManager.removeUpdates(listener);
-            }
             Intent i = new Intent("location_update");
             i.putExtra("latitude", "permission_denied");
             i.putExtra("longitude", "permission_denied");

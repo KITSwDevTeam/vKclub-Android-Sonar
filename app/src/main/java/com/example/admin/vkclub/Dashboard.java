@@ -439,56 +439,70 @@ public class Dashboard extends AppCompatActivity {
                 alertDialog.setMessage("I'm currently facing an emergency problem.");
                 AlertDialog.Builder confirm = alertDialog.setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        String SENT = "SMS_SENT";
-                        String DELIVERED = "SMS_DELIVERED";
-                        PendingIntent sentPI = PendingIntent.getBroadcast(getApplicationContext(), 0, new Intent(SENT), 0);
-                        PendingIntent deliveredPI = PendingIntent.getBroadcast(getApplicationContext(), 0, new Intent(DELIVERED), 0);
+                        if (ContextCompat.checkSelfPermission(getAppContext(), Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_DENIED){
+                            String SENT = "SMS_SENT";
+                            String DELIVERED = "SMS_DELIVERED";
+                            PendingIntent sentPI = PendingIntent.getBroadcast(getApplicationContext(), 0, new Intent(SENT), 0);
+                            PendingIntent deliveredPI = PendingIntent.getBroadcast(getApplicationContext(), 0, new Intent(DELIVERED), 0);
 
-                        //---when the SMS has been sent---
-                        registerReceiver(new BroadcastReceiver() {
-                            @Override
-                            public void onReceive(Context arg0, Intent arg1) {
-                                switch (getResultCode()) {
-                                    case Activity.RESULT_OK:
-                                        Toast.makeText(getBaseContext(), "SMS sent", Toast.LENGTH_SHORT).show();
-                                        break;
-                                    case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
-                                        Toast.makeText(getBaseContext(), "Generic failure", Toast.LENGTH_SHORT).show();
-                                        break;
-                                    case SmsManager.RESULT_ERROR_NO_SERVICE:
-                                        Toast.makeText(getBaseContext(), "No service", Toast.LENGTH_SHORT).show();
-                                        break;
+                            //---when the SMS has been sent---
+                            registerReceiver(new BroadcastReceiver() {
+                                @Override
+                                public void onReceive(Context arg0, Intent arg1) {
+                                    switch (getResultCode()) {
+                                        case Activity.RESULT_OK:
+                                            presentDialog("Send SOS Success", "Your emergency message has been successfully sent.\nThank you for using Vkclub.");
+                                            break;
+                                        case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
+                                            Toast.makeText(getBaseContext(), "Generic failure", Toast.LENGTH_SHORT).show();
+                                            presentDialog("Send SOS failed", "Sorry, There might be some problem with the device itself. Please try again\n" +
+                                                    "Thank you for using Vkclub.");
+                                            break;
+                                        case SmsManager.RESULT_ERROR_NO_SERVICE:
+                                            presentDialog("Send SOS failed", "Sorry, It seem like your signal is quite slow. Please try again.\n" +
+                                                    "Thank you for using Vkclub.");
+                                            break;
+                                    }
                                 }
-                            }
-                        }, new IntentFilter(SENT));
+                            }, new IntentFilter(SENT));
 
-                        //---when the SMS has been delivered---
-                        registerReceiver(new BroadcastReceiver() {
-                            @Override
-                            public void onReceive(Context arg0, Intent arg1) {
-                                switch (getResultCode()) {
-                                    case Activity.RESULT_OK:
-                                        Toast.makeText(getBaseContext(), "SMS delivered", Toast.LENGTH_SHORT).show();
-                                        break;
-                                    case Activity.RESULT_CANCELED:
-                                        Toast.makeText(getBaseContext(), "SMS not delivered", Toast.LENGTH_SHORT).show();
-                                        break;
+                            //---when the SMS has been delivered---
+                            registerReceiver(new BroadcastReceiver() {
+                                @Override
+                                public void onReceive(Context arg0, Intent arg1) {
+                                    switch (getResultCode()) {
+                                        case Activity.RESULT_OK:
+                                            Toast.makeText(getBaseContext(), "Emergency SOS message has been successfully delivered", Toast.LENGTH_SHORT).show();
+                                            break;
+                                        case Activity.RESULT_CANCELED:
+                                            Toast.makeText(getBaseContext(), "Emergency SOS message was not delivered.", Toast.LENGTH_SHORT).show();
+                                            break;
+                                    }
                                 }
-                            }
-                        }, new IntentFilter(DELIVERED));
+                            }, new IntentFilter(DELIVERED));
 
-                        SmsManager sms = SmsManager.getDefault();
-                        if (statusCode == 0)
-                            sms.sendTextMessage(phoneNumber, null, message, sentPI, deliveredPI);
-                        else if (statusCode == 1) {
-                            String title = "Off Kirirom Mode";
-                            presentDialog(title, "This function is not accessible outside kirirom area.");
-                        } else if (statusCode == 2) {
-                            String title = "Unidentified";
-                            presentDialog(title, "Location failed. Turn on Location Service to Determine your current location for App Mode: \\n Setting > Location");
-                        } else {
-                            String title = "Error";
-                            presentDialog(title, "Invalid");
+                            SmsManager sms = SmsManager.getDefault();
+                            if (statusCode == 0){
+                                Intent smsIn = new Intent(Intent.ACTION_VIEW);
+                                smsIn.setData(Uri.parse("sms:" + phoneNumber));
+                                smsIn.putExtra("sms_body", message);
+                                startActivity(smsIn);
+                            }
+//                                sms.sendTextMessage(phoneNumber, null, message, sentPI, deliveredPI);
+                            else if (statusCode == 1) {
+                                String title = "Off Kirirom Mode";
+                                presentDialog(title, "This function is not accessible outside kirirom area.");
+                            } else if (statusCode == 2) {
+                                String title = "Unidentified";
+                                presentDialog(title, "Location failed. Turn on Location Service to Determine your current location for App Mode: \\n Setting > Location");
+                            } else {
+                                String title = "Error";
+                                presentDialog(title, "Invalid");
+                            }
+                        }else {
+                            ActivityCompat.requestPermissions(Dashboard.dashboardActivity, new String[]{
+                                    Manifest.permission.SEND_SMS
+                            }, 150);
                         }
                     }
                 });
@@ -949,6 +963,40 @@ public class Dashboard extends AppCompatActivity {
                     alert.show();
                 }
             });
+        }else if (currentLat == -2 && currentLon == -2){
+            this.statusCode = 2;
+            appmode.setText("Unidentified");
+            appmode.setTextColor(Color.parseColor("#c0c0c0"));
+            appmode.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getAppContext());
+                    builder.setTitle("Location provider disabled");
+                    builder.setMessage("Vkclub cannot identify your current location due to location provider disabled\n" +
+                            "Would you like to enable it ?");
+                    builder.setCancelable(true);
+                    builder.setPositiveButton(
+                            "Enable",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    Intent i = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    startActivity(i);
+                                }
+                            });
+
+                    builder.setNegativeButton(
+                            "Cancel",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+
+                    AlertDialog alert = builder.create();
+                    alert.show();
+                }
+            });
         } else {
             //Earth Ray
             double R = 6371;
@@ -1087,15 +1135,52 @@ public class Dashboard extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(this, new String[]{
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-            }, 100);
+        LocationManager locationService = (LocationManager) getSystemService(LOCATION_SERVICE);
+        boolean locationServiceEnabled = locationService.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        if (!locationServiceEnabled){
+            appmode.setText("Unidentified");
+            appmode.setTextColor(Color.parseColor("#c0c0c0"));
+            appmode.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getAppContext());
+                    builder.setTitle("Location provider disabled");
+                    builder.setMessage("Vkclub cannot identify your current location due to location provider disabled\n" +
+                            "Would you like to enable it ?");
+                    builder.setCancelable(true);
+                    builder.setPositiveButton(
+                            "Enable",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    Intent i = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    startActivity(i);
+                                }
+                            });
+
+                    builder.setNegativeButton(
+                            "Cancel",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+
+                    AlertDialog alert = builder.create();
+                    alert.show();
+                }
+            });
         }else {
-            start_gps_service();
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED){
+                ActivityCompat.requestPermissions(this, new String[]{
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                }, 100);
+            }else {
+                start_gps_service();
+            }
         }
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED
@@ -1120,7 +1205,10 @@ public class Dashboard extends AppCompatActivity {
                     }else if (intent.getExtras().get("latitude").toString().equals("permission_denied") &&
                             intent.getExtras().get("longitude").toString().equals("permission_denied")){
                         calcDistance(-1, -1);
-                    } else {
+                    }else if (intent.getExtras().get("latitude").toString().equals("provider_disabled") &&
+                            intent.getExtras().get("longitude").toString().equals("provider_disabled")){
+                        calcDistance(-2, -2);
+                    }else {
                         currentLat = Double.parseDouble(intent.getExtras().get("latitude").toString());
                         currentLon = Double.parseDouble(intent.getExtras().get("longitude").toString());
                         message = "Please help! I'm currently facing an emergency problem. Here is my Location: http://maps.google.com/?q=" + currentLat + "," + currentLon;
@@ -1342,25 +1430,29 @@ public class Dashboard extends AppCompatActivity {
     }
 
     private void updateSideMenuContent(){
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         // find the Facebook profile and get the user's id
-        for (UserInfo profile : user.getProviderData()) {
+        for (UserInfo profile : firebaseUser.getProviderData()) {
             // check if the provider id matches "facebook.com"
             if (profile.getProviderId().equals("facebook.com")) {
                 facebookUserId = profile.getUid();
                 updateUserProfilePicture("https://graph.facebook.com/" + facebookUserId + "/picture?height=500", "FB Linked");
             } else if (profile.getProviderId().equals("password")) {
-                updateUserProfilePicture(user.getPhotoUrl().toString(), "Edit");
+                if (firebaseUser.getPhotoUrl() != null){
+                    updateUserProfilePicture(firebaseUser.getPhotoUrl().toString(), "Edit");
+                }else {
+                    updateUserProfilePicture("", "Edit");
+                }
             }
-            userName.setText(user.getDisplayName());
-            userEmail.setText(user.getEmail());
+            userName.setText(firebaseUser.getDisplayName());
+            userEmail.setText(firebaseUser.getEmail());
         }
     }
 
     private void updateUserProfilePicture(String photoUrl, String provider){
-        Log.i("PhotoUrl 000000000000000000000000000000  ", photoUrl);
         imageBlob = prefs.getString("get_blob", "");
         mProvider.setText(provider);
-        if (photoUrl != null) {
+        if (photoUrl != null && !photoUrl.equals("")) {
             if (isNetworkAvailable()){
                 // sometime image loading is freeze so set loading animation for better user experiences
                 userPhoto.setImageAlpha(0);
