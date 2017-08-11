@@ -99,19 +99,19 @@ public class CreateAccount extends AppCompatActivity {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if (s.length() > 0){
-                    if (!((s.charAt(s.length() - 1) > 64 && s.charAt(s.length() - 1) < 91) ||
-                            (s.charAt(s.length() - 1) > 96 && s.charAt(s.length() - 1) < 123) ||
-                            s.charAt(s.length() - 1) == 32)){
-                        nameValidate.setText("Special characters not allowed.");
-                        new android.os.Handler().postDelayed(
-                                new Runnable() {
-                                    public void run() {
-                                        nameValidate.setText("");
-                                    }
-                                }, 4000);
-                        nameStatus = false;
-                    }else {
-                        nameStatus = true;
+                    for (int i=0; i<s.length(); i++){
+                        if (!((s.charAt(i) > 64 && s.charAt(i) < 91) || (s.charAt(i) > 96 && s.charAt(i) < 123) || s.charAt(i) == 32)){
+                            nameValidate.setText("Special characters not allowed.");
+                            new android.os.Handler().postDelayed(
+                                    new Runnable() {
+                                        public void run() {
+                                            nameValidate.setText("");
+                                        }
+                                    }, 4000);
+                            nameStatus = false;
+                        }else {
+                            nameStatus = true;
+                        }
                     }
 
                     if (s.length() == 20){
@@ -141,6 +141,22 @@ public class CreateAccount extends AppCompatActivity {
                 String passwordValue = pass.getText().toString().trim();
                 String confirmpassValue = confirmPass.getText().toString().trim();
 
+                for (int i=0; i<nameValue.length(); i++){
+                    if (!((nameValue.charAt(i) > 64 && nameValue.charAt(i) < 91) ||
+                            (nameValue.charAt(i) > 96 && nameValue.charAt(i) < 123) || nameValue.charAt(i) == 32)){
+                        nameValidate.setText("Special characters not allowed.");
+                        new android.os.Handler().postDelayed(
+                                new Runnable() {
+                                    public void run() {
+                                        nameValidate.setText("");
+                                    }
+                                }, 4000);
+                        nameStatus = false;
+                    }else {
+                        nameStatus = true;
+                    }
+                }
+
                 if (nameValue.length() == 0) {
                     nameValidate.setText("Please enter your name.");
                     nameStatus = false;
@@ -149,7 +165,7 @@ public class CreateAccount extends AppCompatActivity {
                     nameStatus = true;
                 }
 
-                if ((emailValue.indexOf("@") <= 0) || !emailValue.contains(".com") || emailValue.isEmpty()) {
+                if ((emailValue.indexOf("@") <= 0) || emailValue.length() == 0) {
                     emailValidate.setText("Please enter a valid email address.");
                     emailStatus = false;
                 }else {
