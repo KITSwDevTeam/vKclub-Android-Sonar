@@ -4,6 +4,35 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/colorBackground"
     tools:context="com.example.admin.vkclub.Setting">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Notification"
+        android:textSize="20sp"
+        android:background="@color/colorWhite"
+        android:layout_marginLeft="10sp"
+        android:layout_marginRight="10sp"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+        android:textColor="@color/colorGrey"/>
+    <TextView
+        android:id="@+id/help"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Help"
+        android:layout_marginLeft="10sp"
+        android:layout_marginTop="5dp"
+        android:layout_marginRight="10sp"
+        android:layout_marginBottom="150sp"
+        android:paddingBottom="5dp"
+        android:paddingTop="5dp"
+        android:textSize="20sp"
+        android:textColor="@color/colorGrey"
+        android:background="@color/colorWhite"
+        />
 
 </LinearLayout>

@@ -1,5 +1,7 @@
 package com.example.admin.vkclub;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -42,12 +44,56 @@ public class Accommodation extends Fragment {
             @Override
             public void onItemClick(int position, View v) {
                 Log.i(LOG_TAG, " Clicked on Item " + position);
+
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_VIEW);
+                intent.addCategory(Intent.CATEGORY_BROWSABLE);
+                switch(position) {
+                    case 0:
+                        intent.setData(Uri.parse("http://vkirirom.com/en/details.php#BoreyA"));
+                        Log.i("accomodation",intent.toString());
+                        startActivity(intent);
+                        break;
+                    case 1:
+                        intent.setData(Uri.parse("http://vkirirom.com/en/details.php#BoreyR"));
+                        startActivity(intent);
+                        break;
+                    case 2:
+                        intent.setData(Uri.parse("http://vkirirom.com/en/details.php#Bungalow"));
+                        startActivity(intent);
+                        break;
+                    case 3:
+                        intent.setData(Uri.parse("http://vkirirom.com/en/details.php#Camping"));
+                        startActivity(intent);
+                        break;
+                    case 4:
+                        intent.setData(Uri.parse("http://vkirirom.com/en/details.php#Khmercottage"));
+                        startActivity(intent);
+                        break;
+                    case 5:
+                        intent.setData(Uri.parse("http://vkirirom.com/en/details.php#Luxurytent"));
+                        startActivity(intent);
+                        break;
+                    case 6:
+                        intent.setData(Uri.parse("http://vkirirom.com/en/details.php#Piperoom"));
+                        startActivity(intent);
+                        break;
+                    default:
+                        break;
+
+                }
+
+//                String[] links = getResources().getStringArray(R.array.accomodation1);
+//                Uri uri = Uri.parse(links[position]);
+//                Log.i("accomodation", links[position]);
+//                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+//                startActivity(intent);
             }
         });
     }
 
     private void findView(View view) {
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.my_recycler_view);
+        mRecyclerView = (RecyclerView) view.findViewById(R.id.my_recycler_accom);
 
         Title = new String[]{"Villa Suite", "Villa Jasmine", "Bungalow ", "Camping", "Khmer Cottage", "Luxury Tent", "Pipe Room"};
         Content = new String[]{
@@ -68,7 +114,7 @@ public class Accommodation extends Fragment {
         Image = new int[]{R.drawable.borey_a, R.drawable.borey_r, R.drawable.bungalow, R.drawable.camping, R.drawable.khmercottage,
                 R.drawable.luxurytent, R.drawable.piperoom};
 
-        mRecyclerView.setHasFixedSize(true);
+        mRecyclerView.setHasFixedSize(false);
         mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mAdapter = new RecyclerAdapter(getDataSet());

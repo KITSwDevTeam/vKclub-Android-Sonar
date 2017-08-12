@@ -1,5 +1,7 @@
 package com.example.admin.vkclub;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -42,12 +44,56 @@ public class Service extends Fragment {
             @Override
             public void onItemClick(int position, View v) {
                 Log.i(LOG_TAG, " Clicked on Item " + position);
+
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_VIEW);
+                intent.addCategory(Intent.CATEGORY_BROWSABLE);
+                switch(position) {
+                    case 0:
+                        intent.setData(Uri.parse("http://vkirirom.com"));
+                        Log.i("service",intent.toString());
+                        startActivity(intent);
+                        break;
+                    case 1:
+                        intent.setData(Uri.parse("http://vkirirom.com/en/services.php#"));
+                        startActivity(intent);
+                        break;
+                    case 2:
+                        intent.setData(Uri.parse("http://vkirirom.com"));
+                        startActivity(intent);
+                        break;
+                    case 3:
+                        intent.setData(Uri.parse("http://vkirirom.com/en/detailsFacilities.php"));
+                        startActivity(intent);
+                        break;
+                    case 4:
+                        intent.setData(Uri.parse("http://vkirirom.com"));
+                        startActivity(intent);
+                        break;
+                    case 5:
+                        intent.setData(Uri.parse("http://vkirirom.com"));
+                        startActivity(intent);
+                        break;
+                    case 6:
+                        intent.setData(Uri.parse("http://vkirirom.com/en/gallery.php"));
+                        startActivity(intent);
+                        break;
+                    default:
+                        break;
+
+                }
+
+//                String[] links = getResources().getStringArray(R.array.service1);
+//                Uri uri = Uri.parse(links[position]);
+//                Log.i("service", links[position]);
+//                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+//                startActivity(intent);
             }
         });
     }
 
     private void findView(View view) {
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.my_recycler_view);
+        mRecyclerView = (RecyclerView) view.findViewById(R.id.my_recycler_serv);
 
         Title = new String[]{"Pine View Restaurant", "Mountain Bike Rental", "Massage", "Shuttle Bus", "Conference Room",
                 "Banquet", "Color Ball Fighting", "Bubble Soccer", "Nice Holes Disc Golf Course", "Bicycle Race", "Go Cycling",
@@ -84,7 +130,7 @@ public class Service extends Fragment {
                 R.drawable.multipleourt, R.drawable.hitclaypot, R.drawable.drone, R.drawable.struckout, R.drawable.petanque,
                 R.drawable.treasurehunting, R.drawable.ropeclimbing, R.drawable.walkracing, R.drawable.chambok, R.drawable.jungletrekking, R.drawable.sightseeing};
 
-        mRecyclerView.setHasFixedSize(true);
+        mRecyclerView.setHasFixedSize(false);
         mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mAdapter = new RecyclerAdapter(getDataSet());

@@ -1,10 +1,13 @@
 package com.example.admin.vkclub;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -47,6 +50,9 @@ public class CreateAccount extends AppCompatActivity {
     TextView nameValidate, emailValidate, passValidate, confirmpassValidate, statusText;
 
     private ProgressBar spinner;
+    SharedPreferences preference;
+    SharedPreferences.Editor editor;
+    private static Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,7 +131,7 @@ public class CreateAccount extends AppCompatActivity {
                     confirmpassValidate.setText("Please provide at least 6 characters.");
                     confirmpassStatus = false;
                 } else if (!confirmpassValue.equals(passwordValue)) {
-                    confirmpassValidate.setText("Passwword does not match!");
+                    confirmpassValidate.setText("Password does not match!");
                     confirmpassStatus = false;
                 } else {
                     confirmpassValidate.setText("");
@@ -152,6 +158,7 @@ public class CreateAccount extends AppCompatActivity {
                             .build();
                     user.updateProfile(profileUpdate);
                     sendEmailVerification(user);
+
                     // create account success
                 } else {
                     spinner.setVisibility(View.GONE);

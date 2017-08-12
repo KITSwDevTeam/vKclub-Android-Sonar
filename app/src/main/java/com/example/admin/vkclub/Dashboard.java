@@ -170,7 +170,7 @@ public class Dashboard extends AppCompatActivity {
 
     private BroadcastReceiver broadcastReceiver;
 //    String phoneNumber= "+13343758067";
-    String phoneNumber= "+855962304669";
+    String phoneNumber= "+855966619121";
     String message, facebookUserId = "";
     int statusCode;
     double currentLat, currentLon;
@@ -209,6 +209,7 @@ public class Dashboard extends AppCompatActivity {
     private static final int SIP_PERMISSION_GRANTED = 789;
     private static final int SIP_PERMISSION_NOT_GRANTED = 987;
     private static final int ALL_PERMISSION_GRANTED = 99999;
+    SharedPreferences preference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -237,11 +238,11 @@ public class Dashboard extends AppCompatActivity {
         mSetting = (Button) findViewById(R.id.setting);
         mContact = (Button) findViewById(R.id.contact);
         membershipBtn = (Button) findViewById(R.id.membership);
-        voipBtn = (Button)findViewById(R.id.voip);
-        openNotification = (Button)findViewById(R.id.openNotification);
+        voipBtn = (Button) findViewById(R.id.voip);
+        openNotification = (Button) findViewById(R.id.openNotification);
         aboutUs = (Button) findViewById(R.id.about_us);
         mService = (Button) findViewById(R.id.serviceBtn);
-        msg = (TextView)findViewById(R.id.welcomeMsg);
+        msg = (TextView) findViewById(R.id.welcomeMsg);
         spinningStatus = (TextView) findViewById(R.id.spinning_status);
         uploading = findViewById(R.id.uploading_spinner);
         uploadDone = findViewById(R.id.upload_done);
@@ -303,19 +304,19 @@ public class Dashboard extends AppCompatActivity {
         // call navigate
         navigateScreen(mapButton, Map.class);
         navigateScreen(aboutUs, About.class);
-        navigateScreen(mService,Services.class);
+        navigateScreen(mService, Services.class);
 
         voipBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (Build.VERSION.SDK_INT >= 23 && ContextCompat.checkSelfPermission(getAppContext(), Manifest.permission.READ_PHONE_STATE)
                         != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(getAppContext(), Manifest.permission.RECORD_AUDIO)
-                        != PackageManager.PERMISSION_GRANTED){
+                        != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(Dashboard.dashboardActivity, new String[]{
                             Manifest.permission.READ_PHONE_STATE,
                             Manifest.permission.RECORD_AUDIO
                     }, 300);
-                }else {
+                } else {
                     Intent in = new Intent(getAppContext(), Voip.class);
                     startActivity(in);
                 }
@@ -324,7 +325,7 @@ public class Dashboard extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
         user = mAuth.getCurrentUser();
-        Log.d("++++++++++++++TAG+++++++++++++", user.getProviderId());
+//        Log.d("++++++++++++++TAG+++++++++++++", user.getProviderId());
 
         if (user != null) {
             // find the Facebook profile and get the user's id
@@ -336,14 +337,14 @@ public class Dashboard extends AppCompatActivity {
                     String imageBlob = prefs.getString("get_blob", "");
                     mProvider.setText("FB Linked");
                     facebookUserId = profile.getUid();
-                    if (imageBlob.length() == 0){
+                    if (imageBlob.length() == 0) {
                         // sometime image loading is freeze so set loading animation for better user experiences
                         userPhoto.setImageAlpha(0);
                         uploading.setVisibility(View.VISIBLE);
                         spinningStatus.setText("Loading...");
 
                         setProfilePic("https://graph.facebook.com/" + facebookUserId + "/picture?height=500");
-                    }else {
+                    } else {
                         DbBitmapUtility dbBitmapUtility = new DbBitmapUtility();
                         byte[] imageAsBytes = dbBitmapUtility.getBytesFromString(imageBlob);
                         Bitmap resultBitmap = dbBitmapUtility.getImage(imageAsBytes);
@@ -366,14 +367,14 @@ public class Dashboard extends AppCompatActivity {
                     String imageBlob = prefs.getString("get_blob", "");
                     mProvider.setText("Edit");
                     if (user.getPhotoUrl() != null) {
-                        if (imageBlob.length() == 0){
+                        if (imageBlob.length() == 0) {
                             // sometime image loading is freeze so set loading animation for better user experiences
                             userPhoto.setImageAlpha(0);
                             uploading.setVisibility(View.VISIBLE);
                             spinningStatus.setText("Loading...");
 
                             setProfilePic(user.getPhotoUrl().toString());
-                        }else {
+                        } else {
                             DbBitmapUtility dbBitmapUtility = new DbBitmapUtility();
                             byte[] imageAsBytes = dbBitmapUtility.getBytesFromString(imageBlob);
                             Bitmap resultBitmap = dbBitmapUtility.getImage(imageAsBytes);
@@ -394,202 +395,205 @@ public class Dashboard extends AppCompatActivity {
                         }
                     });
                 }
+
+                //Get from firebase
                 userName.setText(user.getDisplayName());
                 userEmail.setText(user.getEmail());
 //                userPhoto.setImageURI(user.getPhotoUrl());
-            }
 
-            logoutBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getAppContext());
-                    builder.setTitle("Are you sure ?");
-                    builder.setMessage("Logout Vkclub from this device.");
-                    builder.setCancelable(true);
 
-                    builder.setPositiveButton(
-                            "Logout",
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    mAuth.getInstance().signOut();
-                                    LoginManager.getInstance().logOut();
-                                    Intent intent = new Intent(Dashboard.this, LoginActivity.class);
-                                    startActivity(intent);
-                                }
-                            });
+                logoutBtn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getAppContext());
+                        builder.setTitle("Are you sure ?");
+                        builder.setMessage("Logout Vkclub from this device.");
+                        builder.setCancelable(true);
 
-                    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.cancel();
-                        }
-                    });
+                        builder.setPositiveButton(
+                                "Logout",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        mAuth.getInstance().signOut();
+                                        LoginManager.getInstance().logOut();
+                                        Intent intent = new Intent(Dashboard.this, LoginActivity.class);
+                                        startActivity(intent);
+                                    }
+                                });
 
-                    AlertDialog alert = builder.create();
-                    alert.show();
-                }
-            });
+                        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        });
 
-            //setting
-            mSetting.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
+                        AlertDialog alert = builder.create();
+                        alert.show();
+                    }
+                });
+
+                //setting
+                mSetting.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
 //                    AlertDialog.Builder mBuilder = new AlertDialog.Builder(Dashboard.this);
 //                    View mView = getLayoutInflater().inflate(R.layout.setting, null);
 //                    mBuilder.setView(mView);
 //                    AlertDialog dialog = mBuilder.create();
 //                    dialog.show();
-                    Intent in = new Intent(getAppContext(), Setting.class);
-                    startActivity(in);
-                }
-            });
+                        Intent in = new Intent(getAppContext(), Setting.class);
+                        startActivity(in);
+                    }
+                });
 
-            //contact
-            mContact.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    final List<String> listItems = new ArrayList<String>();
-                    listItems.add("Reception(+855 78 777 284)");
-                    listItems.add("Reception(+855 96 2222 735)");
-                    listItems.add("Cancel");
+                //contact
+                mContact.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        final List<String> listItems = new ArrayList<String>();
+                        listItems.add("Reception(+855 78 777 284)");
+                        listItems.add("Reception(+855 96 2222 735)");
+                        listItems.add("Cancel");
 
-                    //Create sequence of items
-                    final CharSequence[] Animals = listItems.toArray(new String[listItems.size()]);
-                    AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(Dashboard.this);
-                    dialogBuilder.setTitle("Contact");
-                    dialogBuilder.setItems(Animals, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int item) {
-                            String selectedText = Animals[item].toString();  //Selected item in listview
-                            if (selectedText.equals("Reception(+855 78 777 284)")) {
-                                if (((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getPhoneType()
-                                        == TelephonyManager.PHONE_TYPE_NONE){
-                                    presentDialog("NO PHONE", "ARE YOU OK?");
-                                }else {
-                                    Intent callIntent = new Intent(Intent.ACTION_CALL);
-                                    callIntent.setData(Uri.parse("tel:078777284"));
-                                    if (ActivityCompat.checkSelfPermission(Dashboard.this,
-                                            Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
-                                        return;
+                        //Create sequence of items
+                        final CharSequence[] Animals = listItems.toArray(new String[listItems.size()]);
+                        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(Dashboard.this);
+                        dialogBuilder.setTitle("Contact");
+                        dialogBuilder.setItems(Animals, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int item) {
+                                String selectedText = Animals[item].toString();  //Selected item in listview
+                                if (selectedText.equals("Reception(+855 78 777 284)")) {
+                                    if (((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getPhoneType()
+                                            == TelephonyManager.PHONE_TYPE_NONE) {
+                                        presentDialog("NO PHONE", "ARE YOU OK?");
+                                    } else {
+                                        Intent callIntent = new Intent(Intent.ACTION_CALL);
+                                        callIntent.setData(Uri.parse("tel:0966619121"));
+                                        if (ActivityCompat.checkSelfPermission(Dashboard.this,
+                                                Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                                            return;
+                                        }
+                                        startActivity(callIntent);
                                     }
-                                    startActivity(callIntent);
-                                }
-                            } else if (selectedText.equals("Reception(+855 96 2222 735)")) {
-                                if (((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getPhoneType()
-                                        == TelephonyManager.PHONE_TYPE_NONE){
-                                    Intent callIntent = new Intent(Intent.ACTION_CALL);
-                                    callIntent.setData(Uri.parse("tel:0962222735"));
+                                } else if (selectedText.equals("Reception(+855 96 2222 735)")) {
+                                    if (((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getPhoneType()
+                                            == TelephonyManager.PHONE_TYPE_NONE) {
+                                        Intent callIntent = new Intent(Intent.ACTION_CALL);
+                                        callIntent.setData(Uri.parse("tel:0966619121"));
 
-                                    if (ActivityCompat.checkSelfPermission(Dashboard.this,
-                                            Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
-                                        return;
+                                        if (ActivityCompat.checkSelfPermission(Dashboard.this,
+                                                Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                                            return;
+                                        }
+                                        startActivity(callIntent);
+                                    } else {
+                                        presentDialog("NO PHONE", "ARE YOU OK?");
                                     }
-                                    startActivity(callIntent);
-                                }else {
-                                    presentDialog("NO PHONE", "ARE YOU OK?");
                                 }
                             }
-                        }
-                    });
-                    //Create alert dialog object via builder
-                    AlertDialog alertDialogObject = dialogBuilder.create();
-                    //Show the dialog
-                    alertDialogObject.show();
-                }
-            });
+                        });
+                        //Create alert dialog object via builder
+                        AlertDialog alertDialogObject = dialogBuilder.create();
+                        //Show the dialog
+                        alertDialogObject.show();
+                    }
+                });
 
-        //Alert button sos
-        Button sos = (Button) findViewById(R.id.sos);
-        sos.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                    final AlertDialog.Builder alertDialog = new AlertDialog.Builder(Dashboard.this);
-                    alertDialog.setTitle("Please help! ");
-                    alertDialog.setMessage("I'm currently facing an emergency problem.");
-                    AlertDialog.Builder confirm = alertDialog.setPositiveButton("Confirm",
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    String SENT = "SMS_SENT";
-                                    String DELIVERED = "SMS_DELIVERED";
+                //Alert button sos
+                Button sos = (Button) findViewById(R.id.sos);
+                sos.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        final AlertDialog.Builder alertDialog = new AlertDialog.Builder(Dashboard.this);
+                        alertDialog.setTitle("Please help! ");
+                        alertDialog.setMessage("I'm currently facing an emergency problem.");
+                        AlertDialog.Builder confirm = alertDialog.setPositiveButton("Confirm",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        String SENT = "SMS_SENT";
+                                        String DELIVERED = "SMS_DELIVERED";
 
-                                    PendingIntent sentPI = PendingIntent.getBroadcast(getApplicationContext(), 0,
-                                            new Intent(SENT), 0);
+                                        PendingIntent sentPI = PendingIntent.getBroadcast(getApplicationContext(), 0,
+                                                new Intent(SENT), 0);
 
-                                    PendingIntent deliveredPI = PendingIntent.getBroadcast(getApplicationContext(), 0,
-                                            new Intent(DELIVERED), 0);
+                                        PendingIntent deliveredPI = PendingIntent.getBroadcast(getApplicationContext(), 0,
+                                                new Intent(DELIVERED), 0);
 
-                                    //---when the SMS has been sent---
-                                    registerReceiver(new BroadcastReceiver() {
-                                        @Override
-                                        public void onReceive(Context arg0, Intent arg1) {
-                                            switch (getResultCode()) {
-                                                case Activity.RESULT_OK:
-                                                    Toast.makeText(getBaseContext(), "SMS sent",
-                                                            Toast.LENGTH_SHORT).show();
-                                                    break;
-                                                case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
-                                                    Toast.makeText(getBaseContext(), "Generic failure",
-                                                            Toast.LENGTH_SHORT).show();
-                                                    break;
-                                                case SmsManager.RESULT_ERROR_NO_SERVICE:
-                                                    Toast.makeText(getBaseContext(), "No service",
-                                                            Toast.LENGTH_SHORT).show();
-                                                    break;
+                                        //---when the SMS has been sent---
+                                        registerReceiver(new BroadcastReceiver() {
+                                            @Override
+                                            public void onReceive(Context arg0, Intent arg1) {
+                                                switch (getResultCode()) {
+                                                    case Activity.RESULT_OK:
+                                                        Toast.makeText(getBaseContext(), "SMS sent",
+                                                                Toast.LENGTH_SHORT).show();
+                                                        break;
+                                                    case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
+                                                        Toast.makeText(getBaseContext(), "Generic failure",
+                                                                Toast.LENGTH_SHORT).show();
+                                                        break;
+                                                    case SmsManager.RESULT_ERROR_NO_SERVICE:
+                                                        Toast.makeText(getBaseContext(), "No service",
+                                                                Toast.LENGTH_SHORT).show();
+                                                        break;
+                                                }
                                             }
-                                        }
-                                    }, new IntentFilter(SENT));
+                                        }, new IntentFilter(SENT));
 
-                                    //---when the SMS has been delivered---
-                                    registerReceiver(new BroadcastReceiver() {
-                                        @Override
-                                        public void onReceive(Context arg0, Intent arg1) {
-                                            switch (getResultCode()) {
-                                                case Activity.RESULT_OK:
-                                                    Toast.makeText(getBaseContext(), "SMS delivered",
-                                                            Toast.LENGTH_SHORT).show();
-                                                    break;
-                                                case Activity.RESULT_CANCELED:
-                                                    Toast.makeText(getBaseContext(), "SMS not delivered",
-                                                            Toast.LENGTH_SHORT).show();
-                                                    break;
+                                        //---when the SMS has been delivered---
+                                        registerReceiver(new BroadcastReceiver() {
+                                            @Override
+                                            public void onReceive(Context arg0, Intent arg1) {
+                                                switch (getResultCode()) {
+                                                    case Activity.RESULT_OK:
+                                                        Toast.makeText(getBaseContext(), "SMS delivered",
+                                                                Toast.LENGTH_SHORT).show();
+                                                        break;
+                                                    case Activity.RESULT_CANCELED:
+                                                        Toast.makeText(getBaseContext(), "SMS not delivered",
+                                                                Toast.LENGTH_SHORT).show();
+                                                        break;
+                                                }
                                             }
+                                        }, new IntentFilter(DELIVERED));
+
+                                        SmsManager sms = SmsManager.getDefault();
+                                        if (statusCode == 0)
+                                            sms.sendTextMessage(phoneNumber, null, message, sentPI, deliveredPI);
+                                        else if (statusCode == 1) {
+                                            String title = "Off Kirirom Mode";
+                                            presentDialog(title, "This function is not accessible outside kirirom area.");
+                                        } else if (statusCode == 2) {
+                                            String title = "Unidentified";
+                                            presentDialog(title, "Location failed. Turn on Location Service to Determine your current location for App Mode: \\n Setting > Location");
+                                        } else {
+                                            String title = "Error";
+                                            presentDialog(title, "Invalid");
+
                                         }
-                                    }, new IntentFilter(DELIVERED));
-
-                                    SmsManager sms = SmsManager.getDefault();
-                                    if (statusCode == 0)
-                                        sms.sendTextMessage(phoneNumber, null, message, sentPI, deliveredPI);
-                                    else if (statusCode == 1) {
-                                        String title = "Off Kirirom Mode";
-                                        presentDialog(title, "This function is not accessible outside kirirom area.");
-                                    } else if (statusCode == 2) {
-                                        String title = "Unidentified";
-                                        presentDialog(title, "Location failed. Turn on Location Service to Determine your current location for App Mode: \\n Setting > Location");
-                                    } else {
-                                        String title = "Error";
-                                        presentDialog(title, "Invalid");
-
                                     }
-                                }
-                            });
+                                });
 
-                    // Setting Negative "NO" Button
-                    alertDialog.setNegativeButton("Cancel",
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
-                                    // Write your code here to execute after dialog
-                                    Toast.makeText(getApplicationContext(), "You clicked on Cancel", Toast.LENGTH_SHORT).show();
-                                    dialog.cancel();
-                                }
-                            });
-                    // Showing Alert Message
-                    alertDialog.show();
-                }
-            });
+                        // Setting Negative "NO" Button
+                        alertDialog.setNegativeButton("Cancel",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // Write your code here to execute after dialog
+                                        Toast.makeText(getApplicationContext(), "You clicked on Cancel", Toast.LENGTH_SHORT).show();
+                                        dialog.cancel();
+                                    }
+                                });
+                        // Showing Alert Message
+                        alertDialog.show();
+                    }
+                });
+            }
+            IntentFilter filter = new IntentFilter();
+            filter.addAction("android.Vkclub.INCOMING_CALL");
+            callReceiver = new IncomingCallReceiver();
+            this.registerReceiver(callReceiver, filter);
         }
-        IntentFilter filter = new IntentFilter();
-        filter.addAction("android.Vkclub.INCOMING_CALL");
-        callReceiver = new IncomingCallReceiver();
-        this.registerReceiver(callReceiver, filter);
     }
 
     public void showDialog() {

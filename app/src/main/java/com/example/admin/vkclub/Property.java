@@ -1,5 +1,7 @@
 package com.example.admin.vkclub;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -42,12 +44,36 @@ public class Property extends Fragment {
             @Override
             public void onItemClick(int position, View v) {
                 Log.i(LOG_TAG, " Clicked on Item " + position);
+
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_VIEW);
+                intent.addCategory(Intent.CATEGORY_BROWSABLE);
+                switch(position) {
+                    case 0:
+                        intent.setData(Uri.parse("http://property.vkirirom.com/type_a.php"));
+                        Log.i("property",intent.toString());
+                        startActivity(intent);
+                        break;
+                    case 1:
+                        intent.setData(Uri.parse("http://property.vkirirom.com/type_r.php"));
+                        startActivity(intent);
+                        break;
+                    default:
+                        break;
+
+                }
+
+//                String[] links = getResources().getStringArray(R.array.property1);
+//                Uri uri = Uri.parse(links[position]);
+//                Log.i("property", links[position]);
+//                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+//                startActivity(intent);
             }
         });
     }
 
     private void findView(View view) {
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.my_recycler_view);
+        mRecyclerView = (RecyclerView) view.findViewById(R.id.my_recycler_prop);
 
         Title = new String[]{"Orchid Hills", "Villa Jasmine"};
         Content = new String[]{"Our resort provides this special house for a big family and it is suitable for a holiday party.",
@@ -55,7 +81,7 @@ public class Property extends Fragment {
                 " for couples or small families wanting a private retreat away from the city."};
         Image = new int[]{R.drawable.orchidhill, R.drawable.villajasmine};
 
-        mRecyclerView.setHasFixedSize(true);
+        mRecyclerView.setHasFixedSize(false);
         mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mAdapter = new RecyclerAdapter(getDataSet());
