@@ -171,7 +171,7 @@ public class Dashboard extends AppCompatActivity {
     public Voip voipClient;
 
     private BroadcastReceiver broadcastReceiver;
-    //    String phoneNumber= "+13343758067";
+//    String phoneNumber= "+13343758067";
     String phoneNumber= "+855962304669";
     String message, facebookUserId = "";
     int statusCode;
@@ -429,96 +429,96 @@ public class Dashboard extends AppCompatActivity {
                 }
             });
 
-            //Alert button sos
-            Button sos = (Button) findViewById(R.id.sos);
-            sos.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    final AlertDialog.Builder alertDialog = new AlertDialog.Builder(Dashboard.this);
-                    alertDialog.setTitle("Please help! ");
-                    alertDialog.setMessage("I'm currently facing an emergency problem.");
-                    AlertDialog.Builder confirm = alertDialog.setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            if (ContextCompat.checkSelfPermission(getAppContext(), Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_DENIED){
-                                String SENT = "SMS_SENT";
-                                String DELIVERED = "SMS_DELIVERED";
-                                PendingIntent sentPI = PendingIntent.getBroadcast(getApplicationContext(), 0, new Intent(SENT), 0);
-                                PendingIntent deliveredPI = PendingIntent.getBroadcast(getApplicationContext(), 0, new Intent(DELIVERED), 0);
+        //Alert button sos
+        Button sos = (Button) findViewById(R.id.sos);
+        sos.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final AlertDialog.Builder alertDialog = new AlertDialog.Builder(Dashboard.this);
+                alertDialog.setTitle("Please help! ");
+                alertDialog.setMessage("I'm currently facing an emergency problem.");
+                AlertDialog.Builder confirm = alertDialog.setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (ContextCompat.checkSelfPermission(getAppContext(), Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_DENIED){
+                            String SENT = "SMS_SENT";
+                            String DELIVERED = "SMS_DELIVERED";
+                            PendingIntent sentPI = PendingIntent.getBroadcast(getApplicationContext(), 0, new Intent(SENT), 0);
+                            PendingIntent deliveredPI = PendingIntent.getBroadcast(getApplicationContext(), 0, new Intent(DELIVERED), 0);
 
-                                //---when the SMS has been sent---
-                                registerReceiver(new BroadcastReceiver() {
-                                    @Override
-                                    public void onReceive(Context arg0, Intent arg1) {
-                                        switch (getResultCode()) {
-                                            case Activity.RESULT_OK:
-                                                presentDialog("Send SOS Success", "Your emergency message has been successfully sent.\nThank you for using Vkclub.");
-                                                break;
-                                            case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
-                                                Toast.makeText(getBaseContext(), "Generic failure", Toast.LENGTH_SHORT).show();
-                                                presentDialog("Send SOS failed", "Sorry, There might be some problem with the device itself. Please try again\n" +
-                                                        "Thank you for using Vkclub.");
-                                                break;
-                                            case SmsManager.RESULT_ERROR_NO_SERVICE:
-                                                presentDialog("Send SOS failed", "Sorry, It seem like your signal is quite slow. Please try again.\n" +
-                                                        "Thank you for using Vkclub.");
-                                                break;
-                                        }
+                            //---when the SMS has been sent---
+                            registerReceiver(new BroadcastReceiver() {
+                                @Override
+                                public void onReceive(Context arg0, Intent arg1) {
+                                    switch (getResultCode()) {
+                                        case Activity.RESULT_OK:
+                                            presentDialog("Send SOS Success", "Your emergency message has been successfully sent.\nThank you for using Vkclub.");
+                                            break;
+                                        case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
+                                            Toast.makeText(getBaseContext(), "Generic failure", Toast.LENGTH_SHORT).show();
+                                            presentDialog("Send SOS failed", "Sorry, There might be some problem with the device itself. Please try again\n" +
+                                                    "Thank you for using Vkclub.");
+                                            break;
+                                        case SmsManager.RESULT_ERROR_NO_SERVICE:
+                                            presentDialog("Send SOS failed", "Sorry, It seem like your signal is quite slow. Please try again.\n" +
+                                                    "Thank you for using Vkclub.");
+                                            break;
                                     }
-                                }, new IntentFilter(SENT));
+                                }
+                            }, new IntentFilter(SENT));
 
-                                //---when the SMS has been delivered---
-                                registerReceiver(new BroadcastReceiver() {
-                                    @Override
-                                    public void onReceive(Context arg0, Intent arg1) {
-                                        switch (getResultCode()) {
-                                            case Activity.RESULT_OK:
-                                                Toast.makeText(getBaseContext(), "Emergency SOS message has been successfully delivered", Toast.LENGTH_SHORT).show();
-                                                break;
-                                            case Activity.RESULT_CANCELED:
-                                                Toast.makeText(getBaseContext(), "Emergency SOS message was not delivered.", Toast.LENGTH_SHORT).show();
-                                                break;
-                                        }
+                            //---when the SMS has been delivered---
+                            registerReceiver(new BroadcastReceiver() {
+                                @Override
+                                public void onReceive(Context arg0, Intent arg1) {
+                                    switch (getResultCode()) {
+                                        case Activity.RESULT_OK:
+                                            Toast.makeText(getBaseContext(), "Emergency SOS message has been successfully delivered", Toast.LENGTH_SHORT).show();
+                                            break;
+                                        case Activity.RESULT_CANCELED:
+                                            Toast.makeText(getBaseContext(), "Emergency SOS message was not delivered.", Toast.LENGTH_SHORT).show();
+                                            break;
                                     }
-                                }, new IntentFilter(DELIVERED));
+                                }
+                            }, new IntentFilter(DELIVERED));
 
-                                SmsManager sms = SmsManager.getDefault();
-                                if (statusCode == 0){
-                                    Intent smsIn = new Intent(Intent.ACTION_VIEW);
-                                    smsIn.setData(Uri.parse("sms:" + phoneNumber));
-                                    smsIn.putExtra("sms_body", message);
-                                    startActivity(smsIn);
-                                }
-//                                sms.sendTextMessage(phoneNumber, null, message, sentPI, deliveredPI);
-                                else if (statusCode == 1) {
-                                    String title = "Off Kirirom Mode";
-                                    presentDialog(title, "This function is not accessible outside kirirom area.");
-                                } else if (statusCode == 2) {
-                                    String title = "Unidentified";
-                                    presentDialog(title, "Location failed. Turn on Location Service to Determine your current location for App Mode: \\n Setting > Location");
-                                } else {
-                                    String title = "Error";
-                                    presentDialog(title, "Invalid");
-                                }
-                            }else {
-                                ActivityCompat.requestPermissions(Dashboard.dashboardActivity, new String[]{
-                                        Manifest.permission.SEND_SMS
-                                }, 150);
+                            SmsManager sms = SmsManager.getDefault();
+                            if (statusCode == 0){
+                                Intent smsIn = new Intent(Intent.ACTION_VIEW);
+                                smsIn.setData(Uri.parse("sms:" + phoneNumber));
+                                smsIn.putExtra("sms_body", message);
+                                startActivity(smsIn);
                             }
+//                                sms.sendTextMessage(phoneNumber, null, message, sentPI, deliveredPI);
+                            else if (statusCode == 1) {
+                                String title = "Off Kirirom Mode";
+                                presentDialog(title, "This function is not accessible outside kirirom area.");
+                            } else if (statusCode == 2) {
+                                String title = "Unidentified";
+                                presentDialog(title, "Location failed. Turn on Location Service to Determine your current location for App Mode: \\n Setting > Location");
+                            } else {
+                                String title = "Error";
+                                presentDialog(title, "Invalid");
+                            }
+                        }else {
+                            ActivityCompat.requestPermissions(Dashboard.dashboardActivity, new String[]{
+                                    Manifest.permission.SEND_SMS
+                            }, 150);
                         }
-                    });
+                    }
+                });
 
-                    // Setting Negative "NO" Button
-                    alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            // Write your code here to execute after dialog
-                            Toast.makeText(getApplicationContext(), "You clicked on Cancel", Toast.LENGTH_SHORT).show();
-                            dialog.cancel();
-                        }
-                    });
-                    // Showing Alert Message
-                    alertDialog.show();
-                }
-            });
+                // Setting Negative "NO" Button
+                alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Write your code here to execute after dialog
+                        Toast.makeText(getApplicationContext(), "You clicked on Cancel", Toast.LENGTH_SHORT).show();
+                        dialog.cancel();
+                    }
+                });
+                // Showing Alert Message
+                alertDialog.show();
+            }
+        });
         }
         IntentFilter filter = new IntentFilter();
         filter.addAction("android.Vkclub.INCOMING_CALL");
@@ -866,7 +866,7 @@ public class Dashboard extends AppCompatActivity {
         new BitmapFromUrl(userPhoto, uploading).execute(photoUrl);
     }
 
-    //    get camera
+//    get camera
     private void dispatchTakePictureIntent() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(this, new String[]{
@@ -1120,6 +1120,8 @@ public class Dashboard extends AppCompatActivity {
     @Override
     protected void onStart() {
         mAuth.addAuthStateListener(mAuthListener);
+        // Connect the client.
+//        mGoogleApiClient.connect();
         super.onStart();
     }
 

@@ -105,17 +105,21 @@
         <activity android:name=".Map" />
         <activity
             android:name=".CreateAccount"
-            android:theme="@style/noActionBar" />
+            android:theme="@style/noActionBar"/>
         <activity
             android:name=".Dashboard"
-            android:exported="true"
-            android:theme="@style/noActionBar" />
+            android:theme="@style/noActionBar"/>
+
         <activity
             android:name=".ForgetPassword"
             android:theme="@style/noActionBar" />
 
         <service android:name=".GPS_Service" />
 
+        <activity
+            android:name=".Test"
+            android:label="@string/title_activity_test"
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".Receivecall" />
         <activity android:name=".Calling" />
         <activity android:name=".Historydetail" />
@@ -143,18 +147,18 @@
                 <action android:name="android.intent.action.PHONE_STATE" />
                 <action android:name="android.Vkclub.INCOMING_CALL" />
             </intent-filter>
-    </service>
+        </service>
 
-<activity
-android:name=".DialogActivity"
-android:excludeFromRecents="true"
-android:theme="@style/NoTitleDialog" />
-<activity android:name=".CropImage" />
-<activity android:name=".Setting" />
-<activity
-android:name=".WelcomeActivity"
-android:theme="@style/noActionBar" />
-<activity android:name=".Services" />
+        <activity
+            android:name=".DialogActivity"
+            android:excludeFromRecents="true"
+            android:theme="@style/NoTitleDialog" />
+        <activity android:name=".CropImage" />
+        <activity android:name=".Setting"></activity>
+        <activity
+            android:name=".WelcomeActivity"
+            android:theme="@style/noActionBar" />
+        <activity android:name=".Services" />
     </application>
 
-    </manifest>
+</manifest>

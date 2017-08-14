@@ -62,8 +62,8 @@ public class Property extends Fragment {
 
         Title = new String[]{"Orchid Hills", "Villa Jasmine"};
         Content = new String[]{"Our resort provides this special house for a big family and it is suitable for a holiday party.",
-                "Studio designed holiday homes for everyone. With a spacious built up area of 36 square meters, these units are perfect" +
-                        " for couples or small families wanting a private retreat away from the city."};
+        "Studio designed holiday homes for everyone. With a spacious built up area of 36 square meters, these units are perfect" +
+                " for couples or small families wanting a private retreat away from the city."};
         Image = new int[]{R.drawable.orchidhill, R.drawable.villajasmine};
 
         mRecyclerView.setHasFixedSize(false);

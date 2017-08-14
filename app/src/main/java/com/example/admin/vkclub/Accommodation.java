@@ -76,8 +76,8 @@ public class Accommodation extends Fragment {
                         "decorated with ",
                 "Luxury Tent-Stay in style and comfort in a high quality tent with the comfort of a hotel room. The tents come with a king" +
                         " size bed and en suite bathroom.",
-                "A unique design to Cambodia and other Asian countries, the Pipe Rooms are affordable and cozy options. Ideal for students and couples" +
-                        " who want to experience a creatively."};
+        "A unique design to Cambodia and other Asian countries, the Pipe Rooms are affordable and cozy options. Ideal for students and couples" +
+                " who want to experience a creatively."};
         Image = new int[]{R.drawable.borey_a, R.drawable.borey_r, R.drawable.bungalow, R.drawable.camping, R.drawable.khmercottage,
                 R.drawable.luxurytent, R.drawable.piperoom};
 
