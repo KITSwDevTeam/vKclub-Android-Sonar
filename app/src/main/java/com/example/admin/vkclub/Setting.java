@@ -41,20 +41,18 @@ public class Setting extends AppCompatActivity {
             public void onClick(View v) {
                 if (((ToggleButton) v).isChecked()){
                     mSetting.setVisibility(View.VISIBLE);
-                    mtoggle.setTextOff("TOGGLE ON");
+//                    mtoggle.setTextOff("TOGGLE ON");
                     mtoggle.setChecked(true);
                 }
 
 
                 else{
                     mSetting.setVisibility(View.GONE);
-                    mtoggle.setTextOn("TOGGLE OFF");
+//                    mtoggle.setTextOn("TOGGLE OFF");
                     mtoggle.setChecked(false);
                 }
 
             }
-
-
         });
     }
 
