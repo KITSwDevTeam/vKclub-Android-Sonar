@@ -8,9 +8,12 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -19,6 +22,10 @@ import java.util.ArrayList;
  */
 
 public class Service extends Fragment {
+    public static interface ClickListener{
+        public void onClick(View view,int position);
+        public void onLongClick(View view,int position);
+    }
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
@@ -44,61 +51,17 @@ public class Service extends Fragment {
             @Override
             public void onItemClick(int position, View v) {
                 Log.i(LOG_TAG, " Clicked on Item " + position);
-
-                Intent intent = new Intent();
-                intent.setAction(Intent.ACTION_VIEW);
-                intent.addCategory(Intent.CATEGORY_BROWSABLE);
-                switch(position) {
-                    case 0:
-                        intent.setData(Uri.parse("http://vkirirom.com"));
-                        Log.i("service",intent.toString());
-                        startActivity(intent);
-                        break;
-                    case 1:
-                        intent.setData(Uri.parse("http://vkirirom.com/en/services.php#"));
-                        startActivity(intent);
-                        break;
-                    case 2:
-                        intent.setData(Uri.parse("http://vkirirom.com"));
-                        startActivity(intent);
-                        break;
-                    case 3:
-                        intent.setData(Uri.parse("http://vkirirom.com/en/detailsFacilities.php"));
-                        startActivity(intent);
-                        break;
-                    case 4:
-                        intent.setData(Uri.parse("http://vkirirom.com"));
-                        startActivity(intent);
-                        break;
-                    case 5:
-                        intent.setData(Uri.parse("http://vkirirom.com"));
-                        startActivity(intent);
-                        break;
-                    case 6:
-                        intent.setData(Uri.parse("http://vkirirom.com/en/gallery.php"));
-                        startActivity(intent);
-                        break;
-                    default:
-                        break;
-
-                }
-
-//                String[] links = getResources().getStringArray(R.array.service1);
-//                Uri uri = Uri.parse(links[position]);
-//                Log.i("service", links[position]);
-//                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-//                startActivity(intent);
             }
         });
     }
 
     private void findView(View view) {
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.my_recycler_serv);
+        mRecyclerView = (RecyclerView) view.findViewById(R.id.service_recycler_view);
 
         Title = new String[]{"Pine View Restaurant", "Mountain Bike Rental", "Massage", "Shuttle Bus", "Conference Room",
                 "Banquet", "Color Ball Fighting", "Bubble Soccer", "Nice Holes Disc Golf Course", "Bicycle Race", "Go Cycling",
-        "Field Day", "Multiple Court", "Hit The Clay Pot", "Drone Flying Lesson", "Struck Out", "Petanque", "Treasure Hunting",
-        "Rope Climbing", "Three Legged Race", "Chambok Waterfall Tour", "Juggle Trekking", "Half Day Sightseeing", "Tour"};
+                "Field Day", "Multiple Court", "Hit The Clay Pot", "Drone Flying Lesson", "Struck Out", "Petanque", "Treasure Hunting",
+                "Rope Climbing", "Three Legged Race", "Chambok Waterfall Tour", "Juggle Trekking", "Half Day Sightseeing", "Tour"};
         Content = new String[]{
                 "Serves the best foods with our experienced chefs among all the pine trees.",
                 "Do you prefer riding a mountain bike to see the sights around Kirirom? You can rent the vehicles here, " +
@@ -108,22 +71,22 @@ public class Service extends Fragment {
                 "For seminar meeting, conference etc. Share your ideas in the mountain.",
                 "Pine View Kitchen has around 160 seats, where you can have a big party. Buffet can also be available.",
                 "Let's ball fighting! How good are you at hiding, ducking and throwing a ball? Let's find it out here at vKirirom Pine Resort.",
-        "Bubble Soccer is becoming popular around the world. Come and try the first bubble soccer in Cambodia.",
-        "Dics golf, also known as Frisbee golf, is a flying disc game, as well as a precision and accuracy sport.",
-        "Ready Set GO! Come with your friends and challenge them to an exciting bicycle race.",
-        "Cycling is the very popular leisure activity while in Kirirom Pine Resort. Ask our staff for a map.",
-        "Field Trip? Visit us at vKirirom Pine Resort and enjoy a variety at team building activities.",
-        "We have a volleyball, netball, futsal, and dodge ball",
-        "One of Cambodia's favourite popular game is here. Blind folded with a bat and a group of directors. Will you hit the pot?",
-        "Do you want to experience being a pilot? Learn how to fly and maneuver this drone with us, available only at vKirirom Pine Resort.",
-        "9 out of 9? You won $300 in cold cash. How good is your aim? You might be our next struck out $300 winner.",
-        "Now it's about the time for you to try one of Europes most popular outdoor strategy game. Let's knock them out.",
-        "How good are you at reading and finding clues? Come and try our Treasure Hunting game and win an exciting prices in our century treasure.",
-        "Strap and buckle that hardness and climb that rope.",
-        "A game of cooperation between partners as mush as it is one of speed.",
-        "Join our Chambok water fall tour and experience the magnification beauty of the fal as well as the native around.",
-        "Jungle treks can be taken throughout the year. In the green season when rain is plentiful the forest is awash with lush.",
-        "We will show you around the Kirirom National Park, including king Shihanouk's royal palace ruins."};
+                "Bubble Soccer is becoming popular around the world. Come and try the first bubble soccer in Cambodia.",
+                "Dics golf, also known as Frisbee golf, is a flying disc game, as well as a precision and accuracy sport.",
+                "Ready Set GO! Come with your friends and challenge them to an exciting bicycle race.",
+                "Cycling is the very popular leisure activity while in Kirirom Pine Resort. Ask our staff for a map.",
+                "Field Trip? Visit us at vKirirom Pine Resort and enjoy a variety at team building activities.",
+                "We have a volleyball, netball, futsal, and dodge ball",
+                "One of Cambodia's favourite popular game is here. Blind folded with a bat and a group of directors. Will you hit the pot?",
+                "Do you want to experience being a pilot? Learn how to fly and maneuver this drone with us, available only at vKirirom Pine Resort.",
+                "9 out of 9? You won $300 in cold cash. How good is your aim? You might be our next struck out $300 winner.",
+                "Now it's about the time for you to try one of Europes most popular outdoor strategy game. Let's knock them out.",
+                "How good are you at reading and finding clues? Come and try our Treasure Hunting game and win an exciting prices in our century treasure.",
+                "Strap and buckle that hardness and climb that rope.",
+                "A game of cooperation between partners as mush as it is one of speed.",
+                "Join our Chambok water fall tour and experience the magnification beauty of the fal as well as the native around.",
+                "Jungle treks can be taken throughout the year. In the green season when rain is plentiful the forest is awash with lush.",
+                "We will show you around the Kirirom National Park, including king Shihanouk's royal palace ruins."};
         Image = new int[]{R.drawable.pineresort, R.drawable.bikerental, R.drawable.massage,
                 R.drawable.vkirirombus, R.drawable.conferenceroom, R.drawable.banquet, R.drawable.colorballfighting,
                 R.drawable.bubblesoccer, R.drawable.discgolf, R.drawable.bikerace, R.drawable.cycling, R.drawable.pullbat,
@@ -135,6 +98,24 @@ public class Service extends Fragment {
         mRecyclerView.setLayoutManager(mLayoutManager);
         mAdapter = new RecyclerAdapter(getDataSet());
         mRecyclerView.setAdapter(mAdapter);
+
+        mRecyclerView.addOnItemTouchListener(new RecyclerTouchListener(mRecyclerView, new ClickListener() {
+            @Override
+            public void onClick(View view, final int position) {
+                //Values are passing to activity & to fragment as well
+                String[] links = getResources().getStringArray(R.array.service1);
+                Uri uri = Uri.parse(links[position]);
+                Log.i("accomodation", links[position]);
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                startActivity(intent);
+            }
+
+            @Override
+            public void onLongClick(View view, int position) {
+                Toast.makeText(getContext(), "Long press on position :"+position,
+                        Toast.LENGTH_LONG).show();
+            }
+        }));
     }
 
     private ArrayList<DataObject> getDataSet() {
@@ -145,5 +126,50 @@ public class Service extends Fragment {
             results.add(index, obj);
         }
         return results;
+    }
+
+    class RecyclerTouchListener implements RecyclerView.OnItemTouchListener{
+
+        private ClickListener clicklistener;
+        private GestureDetector gestureDetector;
+
+        public RecyclerTouchListener(final RecyclerView recycleView, final ClickListener clicklistener){
+
+            this.clicklistener=clicklistener;
+            gestureDetector=new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener(){
+                @Override
+                public boolean onSingleTapUp(MotionEvent e) {
+                    return true;
+                }
+
+                @Override
+                public void onLongPress(MotionEvent e) {
+                    View child=recycleView.findChildViewUnder(e.getX(),e.getY());
+                    if(child!=null && clicklistener!=null){
+                        clicklistener.onLongClick(child,recycleView.getChildAdapterPosition(child));
+                    }
+                }
+            });
+        }
+
+        @Override
+        public boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e) {
+            View child=rv.findChildViewUnder(e.getX(),e.getY());
+            if(child!=null && clicklistener!=null && gestureDetector.onTouchEvent(e)){
+                clicklistener.onClick(child,rv.getChildAdapterPosition(child));
+            }
+
+            return false;
+        }
+
+        @Override
+        public void onTouchEvent(RecyclerView rv, MotionEvent e) {
+
+        }
+
+        @Override
+        public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+
+        }
     }
 }

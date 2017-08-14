@@ -7,15 +7,24 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.TextView;
+import android.widget.ToggleButton;
 
 public class Setting extends AppCompatActivity {
+
+    private ToggleButton mtoggle ;
+    private TextView mSetting;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setting);
+
+        mtoggle = (ToggleButton) findViewById(R.id.toggleBtn);
+        mSetting = (TextView) findViewById(R.id.settingbtn);
 
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
@@ -27,6 +36,26 @@ public class Setting extends AppCompatActivity {
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorStatusBar));
         }
+
+        mtoggle.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (((ToggleButton) v).isChecked()){
+                    mSetting.setVisibility(View.VISIBLE);
+                    mtoggle.setTextOff("TOGGLE ON");
+                    mtoggle.setChecked(true);
+                }
+
+
+                else{
+                    mSetting.setVisibility(View.GONE);
+                    mtoggle.setTextOn("TOGGLE OFF");
+                    mtoggle.setChecked(false);
+                }
+
+            }
+
+
+        });
     }
 
     @Override

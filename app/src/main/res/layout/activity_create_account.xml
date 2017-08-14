@@ -7,157 +7,164 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingTop="@dimen/activity_vertical_margin" android:weightSum="1"
     android:background="@color/colorBackground"
     tools:context="com.example.admin.vkclub.LoginActivity">
 
-    <android.support.v7.widget.LinearLayoutCompat
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal">
+        android:layout_weight="1"
+        android:orientation="vertical">
 
-        <Button
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:background="@drawable/ic_go_back_left_arrow"
-            android:layout_gravity="left"
-            android:id="@+id/backBtn" />
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/vkirirom_logo" />
-
-    </android.support.v7.widget.LinearLayoutCompat>
-
-    <android.support.v7.widget.LinearLayoutCompat
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp">
-
-        <EditText
+        <android.support.v7.widget.LinearLayoutCompat
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/border_bottom"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"
-            android:hint="Name"
-            android:textColor="@color/colorWhite"
-            android:textColorHint="@color/colorWhite"
-            android:maxLines="1"
-            android:maxLength="100"
-            android:inputType="textPersonName"
-            android:id="@+id/name"/>
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
 
-        <TextView
+            <Button
+                android:id="@+id/backBtn"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="left"
+                android:background="@drawable/ic_go_back_left_arrow"/>
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/vkirirom_logo"/>
+
+        </android.support.v7.widget.LinearLayoutCompat>
+
+        <android.support.v7.widget.LinearLayoutCompat
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="5dp"
-            android:textSize="10dp"
-            android:textColor="@color/colorRed"
-            android:textStyle="italic"
-            android:id="@+id/nameValidation"/>
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp">
 
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/border_bottom"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"
-            android:hint="Email"
-            android:textColor="@color/colorWhite"
-            android:textColorHint="@color/colorWhite"
-            android:maxLines="1"
-            android:maxLength="100"
-            android:inputType="textEmailAddress"
-            android:id="@+id/email"/>
+            <EditText
+                android:id="@+id/name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/border_bottom"
+                android:hint="Name"
+                android:inputType="textPersonName"
+                android:maxLength="20"
+                android:maxLines="1"
+                android:paddingBottom="10dp"
+                android:paddingTop="10dp"
+                android:textColor="@color/colorWhite"
+                android:textColorHint="@color/colorWhite"/>
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="5dp"
-            android:textSize="10dp"
-            android:textColor="@color/colorRed"
-            android:textStyle="italic"
-            android:id="@+id/emailValidation"/>
+            <TextView
+                android:id="@+id/nameValidation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:textColor="@color/colorRed"
+                android:textSize="10dp"
+                android:textStyle="italic"/>
 
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/border_bottom"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"
-            android:hint="Password"
-            android:textColor="@color/colorWhite"
-            android:textColorHint="@color/colorWhite"
-            android:maxLines="1"
-            android:maxLength="20"
-            android:inputType="textPassword"
-            android:id="@+id/pass"/>
+            <EditText
+                android:id="@+id/email"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/border_bottom"
+                android:hint="Email"
+                android:inputType="textEmailAddress"
+                android:maxLength="100"
+                android:maxLines="1"
+                android:paddingBottom="10dp"
+                android:paddingTop="10dp"
+                android:textColor="@color/colorWhite"
+                android:textColorHint="@color/colorWhite"/>
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="5dp"
-            android:textSize="10dp"
-            android:textColor="@color/colorRed"
-            android:textStyle="italic"
-            android:id="@+id/passValidation"/>
+            <TextView
+                android:id="@+id/emailValidation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:textColor="@color/colorRed"
+                android:textSize="10dp"
+                android:textStyle="italic"/>
 
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/border_bottom"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"
-            android:hint="Confirm Password"
-            android:textColor="@color/colorWhite"
-            android:textColorHint="@color/colorWhite"
-            android:maxLines="1"
-            android:maxLength="20"
-            android:inputType="textPassword"
-            android:id="@+id/confirmpass"/>
+            <EditText
+                android:id="@+id/pass"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/border_bottom"
+                android:hint="Password"
+                android:inputType="textPassword"
+                android:maxLength="20"
+                android:maxLines="1"
+                android:paddingBottom="10dp"
+                android:paddingTop="10dp"
+                android:textColor="@color/colorWhite"
+                android:textColorHint="@color/colorWhite"/>
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="5dp"
-            android:textSize="10dp"
-            android:textColor="@color/colorRed"
-            android:textStyle="italic"
-            android:id="@+id/confirmpassValidation"/>
+            <TextView
+                android:id="@+id/passValidation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:textColor="@color/colorRed"
+                android:textSize="10dp"
+                android:textStyle="italic"/>
 
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/transparent_btn"
-            android:text="Sign Up"
-            android:textAllCaps="false"
-            android:textColor="@color/colorWhite"
-            android:textSize="20dp"
-            android:layout_marginTop="10dp"
-            android:id="@+id/signup"/>
+            <EditText
+                android:id="@+id/confirmpass"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/border_bottom"
+                android:hint="Confirm Password"
+                android:inputType="textPassword"
+                android:maxLength="20"
+                android:maxLines="1"
+                android:paddingBottom="10dp"
+                android:paddingTop="10dp"
+                android:textColor="@color/colorWhite"
+                android:textColorHint="@color/colorWhite"/>
 
-        <ProgressBar
-            android:id="@+id/progressBar1"
-            style="?android:attr/progressBarStyleLarge"
-            android:layout_width="50dp"
-            android:layout_height="31dp"
-            android:layout_centerHorizontal="true"
-            android:layout_gravity="center"
-            android:layout_marginTop="10dp"/>
+            <TextView
+                android:id="@+id/confirmpassValidation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:textColor="@color/colorRed"
+                android:textSize="10dp"
+                android:textStyle="italic"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textStyle="italic"
-            android:layout_marginTop="5dp"
-            android:textColor="@color/colorWhite"
-            android:layout_gravity="center"
-            android:id="@+id/status"/>
-    </android.support.v7.widget.LinearLayoutCompat>
+            <Button
+                android:id="@+id/signup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/transparent_btn"
+                android:text="Sign Up"
+                android:textAllCaps="false"
+                android:textColor="@color/colorWhite"
+                android:textSize="20dp"/>
+
+            <ProgressBar
+                android:id="@+id/progressBar1"
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="50dp"
+                android:layout_height="31dp"
+                android:layout_centerHorizontal="true"
+                android:layout_gravity="center"
+                android:layout_marginTop="10dp"/>
+
+            <TextView
+                android:id="@+id/status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="5dp"
+                android:textColor="@color/colorWhite"
+                android:textStyle="italic"/>
+        </android.support.v7.widget.LinearLayoutCompat>
+    </LinearLayout>
 
 </LinearLayout>

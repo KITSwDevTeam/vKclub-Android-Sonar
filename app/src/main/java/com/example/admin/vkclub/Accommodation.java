@@ -1,5 +1,6 @@
 package com.example.admin.vkclub;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -8,9 +9,12 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -18,7 +22,14 @@ import java.util.ArrayList;
  * Created by admin on 7/22/2017.
  */
 
+
 public class Accommodation extends Fragment {
+
+    public static interface ClickListener{
+        public void onClick(View view,int position);
+        public void onLongClick(View view,int position);
+    }
+
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
@@ -44,56 +55,12 @@ public class Accommodation extends Fragment {
             @Override
             public void onItemClick(int position, View v) {
                 Log.i(LOG_TAG, " Clicked on Item " + position);
-
-                Intent intent = new Intent();
-                intent.setAction(Intent.ACTION_VIEW);
-                intent.addCategory(Intent.CATEGORY_BROWSABLE);
-                switch(position) {
-                    case 0:
-                        intent.setData(Uri.parse("http://vkirirom.com/en/details.php#BoreyA"));
-                        Log.i("accomodation",intent.toString());
-                        startActivity(intent);
-                        break;
-                    case 1:
-                        intent.setData(Uri.parse("http://vkirirom.com/en/details.php#BoreyR"));
-                        startActivity(intent);
-                        break;
-                    case 2:
-                        intent.setData(Uri.parse("http://vkirirom.com/en/details.php#Bungalow"));
-                        startActivity(intent);
-                        break;
-                    case 3:
-                        intent.setData(Uri.parse("http://vkirirom.com/en/details.php#Camping"));
-                        startActivity(intent);
-                        break;
-                    case 4:
-                        intent.setData(Uri.parse("http://vkirirom.com/en/details.php#Khmercottage"));
-                        startActivity(intent);
-                        break;
-                    case 5:
-                        intent.setData(Uri.parse("http://vkirirom.com/en/details.php#Luxurytent"));
-                        startActivity(intent);
-                        break;
-                    case 6:
-                        intent.setData(Uri.parse("http://vkirirom.com/en/details.php#Piperoom"));
-                        startActivity(intent);
-                        break;
-                    default:
-                        break;
-
-                }
-
-//                String[] links = getResources().getStringArray(R.array.accomodation1);
-//                Uri uri = Uri.parse(links[position]);
-//                Log.i("accomodation", links[position]);
-//                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-//                startActivity(intent);
             }
         });
     }
 
     private void findView(View view) {
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.my_recycler_accom);
+        mRecyclerView = (RecyclerView) view.findViewById(R.id.accommodation_recycler_view);
 
         Title = new String[]{"Villa Suite", "Villa Jasmine", "Bungalow ", "Camping", "Khmer Cottage", "Luxury Tent", "Pipe Room"};
         Content = new String[]{
@@ -109,8 +76,8 @@ public class Accommodation extends Fragment {
                         "decorated with ",
                 "Luxury Tent-Stay in style and comfort in a high quality tent with the comfort of a hotel room. The tents come with a king" +
                         " size bed and en suite bathroom.",
-        "A unique design to Cambodia and other Asian countries, the Pipe Rooms are affordable and cozy options. Ideal for students and couples" +
-                " who want to experience a creatively."};
+                "A unique design to Cambodia and other Asian countries, the Pipe Rooms are affordable and cozy options. Ideal for students and couples" +
+                        " who want to experience a creatively."};
         Image = new int[]{R.drawable.borey_a, R.drawable.borey_r, R.drawable.bungalow, R.drawable.camping, R.drawable.khmercottage,
                 R.drawable.luxurytent, R.drawable.piperoom};
 
@@ -119,6 +86,24 @@ public class Accommodation extends Fragment {
         mRecyclerView.setLayoutManager(mLayoutManager);
         mAdapter = new RecyclerAdapter(getDataSet());
         mRecyclerView.setAdapter(mAdapter);
+
+        mRecyclerView.addOnItemTouchListener(new RecyclerTouchListener(mRecyclerView, new ClickListener() {
+            @Override
+            public void onClick(View view, final int position) {
+                //Values are passing to activity & to fragment as well
+                String[] links = getResources().getStringArray(R.array.accomodation1);
+                Uri uri = Uri.parse(links[position]);
+                Log.i("accomodation", links[position]);
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                startActivity(intent);
+            }
+
+            @Override
+            public void onLongClick(View view, int position) {
+                Toast.makeText(getContext(), "Long press on position :"+position,
+                        Toast.LENGTH_LONG).show();
+            }
+        }));
     }
 
     private ArrayList<DataObject> getDataSet() {
@@ -129,5 +114,50 @@ public class Accommodation extends Fragment {
             results.add(index, obj);
         }
         return results;
+    }
+
+    class RecyclerTouchListener implements RecyclerView.OnItemTouchListener{
+
+        private ClickListener clicklistener;
+        private GestureDetector gestureDetector;
+
+        public RecyclerTouchListener(final RecyclerView recycleView, final ClickListener clicklistener){
+
+            this.clicklistener=clicklistener;
+            gestureDetector=new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener(){
+                @Override
+                public boolean onSingleTapUp(MotionEvent e) {
+                    return true;
+                }
+
+                @Override
+                public void onLongPress(MotionEvent e) {
+                    View child=recycleView.findChildViewUnder(e.getX(),e.getY());
+                    if(child!=null && clicklistener!=null){
+                        clicklistener.onLongClick(child,recycleView.getChildAdapterPosition(child));
+                    }
+                }
+            });
+        }
+
+        @Override
+        public boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e) {
+            View child=rv.findChildViewUnder(e.getX(),e.getY());
+            if(child!=null && clicklistener!=null && gestureDetector.onTouchEvent(e)){
+                clicklistener.onClick(child,rv.getChildAdapterPosition(child));
+            }
+
+            return false;
+        }
+
+        @Override
+        public void onTouchEvent(RecyclerView rv, MotionEvent e) {
+
+        }
+
+        @Override
+        public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+
+        }
     }
 }

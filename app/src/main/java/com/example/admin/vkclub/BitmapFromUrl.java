@@ -65,55 +65,52 @@ public class BitmapFromUrl extends AsyncTask<String, Void, Bitmap> {
                 String encodedString = dbBitmapUtility.getString(result);
                 editor.putString("get_blob", encodedString);
                 editor.commit();
-                RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(result);
-                uploadingSpinner.setVisibility(View.GONE);
-                bmImage.setImageAlpha(255);
-                bmImage.setImageDrawable(drawable);
             }else {
                 System.out.println("Cannot get bitmap from url" + "Null");
             }
-        }else {
-            System.out.println("Image Blob Exist");
-            byte[] imageAsBytes = dbBitmapUtility.getBytesFromString(imageBlob);
-            Bitmap resultBitmap = dbBitmapUtility.getImage(imageAsBytes);
-            RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(resultBitmap);
-            bmImage.setImageDrawable(drawable);
         }
+
+        RoundedBitmapDrawable drawable = createRoundedBitmapDrawableWithBorder(result);
+        uploadingSpinner.setVisibility(View.GONE);
+        bmImage.setImageAlpha(255);
+        bmImage.setImageDrawable(drawable);
     }
 
     private RoundedBitmapDrawable createRoundedBitmapDrawableWithBorder(Bitmap mBitmap) {
-        int bitmapWidth = mBitmap.getWidth();
-        int bitmapHeight = mBitmap.getHeight();
-        int borderWidthHalf = 10;
+        if (mBitmap != null){
+            int bitmapWidth = mBitmap.getWidth();
+            int bitmapHeight = mBitmap.getHeight();
+            int borderWidthHalf = 10;
 
-        int bitmapRadius = Math.min(bitmapWidth,bitmapHeight)/2;
+            int bitmapRadius = Math.min(bitmapWidth,bitmapHeight)/2;
 
-        int bitmapSquareWidth = Math.min(bitmapWidth,bitmapHeight);
+            int bitmapSquareWidth = Math.min(bitmapWidth,bitmapHeight);
 
-        int newBitmapSquareWidth = bitmapSquareWidth+borderWidthHalf;
-        Bitmap roundedBitmap = Bitmap.createBitmap(newBitmapSquareWidth,newBitmapSquareWidth,Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(roundedBitmap);
-        canvas.drawColor(Color.BLACK);
+            int newBitmapSquareWidth = bitmapSquareWidth+borderWidthHalf;
+            Bitmap roundedBitmap = Bitmap.createBitmap(newBitmapSquareWidth,newBitmapSquareWidth,Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(roundedBitmap);
+            canvas.drawColor(Color.BLACK);
 
-        int x = (borderWidthHalf + bitmapSquareWidth - bitmapWidth);
-        int y = (borderWidthHalf + bitmapSquareWidth - bitmapHeight);
+            int x = (borderWidthHalf + bitmapSquareWidth - bitmapWidth);
+            int y = (borderWidthHalf + bitmapSquareWidth - bitmapHeight);
 
-        canvas.drawBitmap(mBitmap, x, y, null);
+            canvas.drawBitmap(mBitmap, x, y, null);
 
-        // Initializing a new Paint instance to draw circular border
-        Paint borderPaint = new Paint();
-        borderPaint.setStyle(Paint.Style.STROKE);
-        borderPaint.setStrokeWidth(borderWidthHalf);
-        borderPaint.setColor(Color.GREEN);
+            // Initializing a new Paint instance to draw circular border
+            Paint borderPaint = new Paint();
+            borderPaint.setStyle(Paint.Style.STROKE);
+            borderPaint.setStrokeWidth(borderWidthHalf);
+            borderPaint.setColor(Color.GREEN);
 
-        canvas.drawCircle(canvas.getWidth()/2, canvas.getWidth()/2, newBitmapSquareWidth/2, borderPaint);
+            canvas.drawCircle(canvas.getWidth()/2, canvas.getWidth()/2, newBitmapSquareWidth/2, borderPaint);
 
-        RoundedBitmapDrawable roundedBitmapDrawable = RoundedBitmapDrawableFactory.create(mResources,roundedBitmap);
-        roundedBitmapDrawable.setCornerRadius(bitmapRadius);
+            RoundedBitmapDrawable roundedBitmapDrawable = RoundedBitmapDrawableFactory.create(mResources,roundedBitmap);
+            roundedBitmapDrawable.setCornerRadius(bitmapRadius);
 
-        roundedBitmapDrawable.setAntiAlias(true);
-
-        // Return the RoundedBitmapDrawable
-        return roundedBitmapDrawable;
+            roundedBitmapDrawable.setAntiAlias(true);
+            // Return the RoundedBitmapDrawable
+            return roundedBitmapDrawable;
+        }
+        return null;
     }
 }

@@ -108,14 +108,11 @@ public class About extends AppCompatActivity {
             // Return a PlaceholderFragment (defined as a static inner class below).
             switch (position){
                 case 0:
-                    Accommodation accommodation = new Accommodation();
-                    return accommodation;
+                    return new Accommodation();
                 case 1:
-                    Service service = new Service();
-                    return service;
+                    return new Service();
                 case 2:
-                    Property property = new Property();
-                    return property;
+                    return new Property();
             }
             return null;
         }
