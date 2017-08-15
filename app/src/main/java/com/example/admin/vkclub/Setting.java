@@ -1,5 +1,7 @@
 package com.example.admin.vkclub;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
@@ -16,15 +18,16 @@ import android.widget.ToggleButton;
 public class Setting extends AppCompatActivity {
 
     private ToggleButton mtoggle ;
-    private TextView mSetting;
+    private TextView mSetting,mHelp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setting);
 
-        mtoggle = (ToggleButton) findViewById(R.id.toggleBtn);
+//        mtoggle = (ToggleButton) findViewById(R.id.toggleBtn);
         mSetting = (TextView) findViewById(R.id.settingbtn);
+        mHelp = (TextView) findViewById(R.id.help);
 
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
@@ -37,23 +40,39 @@ public class Setting extends AppCompatActivity {
             window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorStatusBar));
         }
 
-        mtoggle.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                if (((ToggleButton) v).isChecked()){
-                    mSetting.setVisibility(View.VISIBLE);
-//                    mtoggle.setTextOff("TOGGLE ON");
-                    mtoggle.setChecked(true);
-                }
-
-
-                else{
-                    mSetting.setVisibility(View.GONE);
-//                    mtoggle.setTextOn("TOGGLE OFF");
-                    mtoggle.setChecked(false);
-                }
+        mSetting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
 
             }
         });
+
+        //Help Alert
+        mHelp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                presentDialog("Help","Notification: Turn OFF/ON all incoming alert notification including Digital News Content as well as Chat Messaging.");
+            }
+        });
+
+    }
+
+    public void presentDialog(String title, String msg) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(title);
+        builder.setMessage(msg);
+        builder.setCancelable(true);
+
+        builder.setPositiveButton(
+                "Yes",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+
+        AlertDialog alert = builder.create();
+        alert.show();
     }
 
     @Override
