@@ -86,10 +86,7 @@ public class ForgetPassword extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
-                    presentDialog("Send Success", "Please check your email address for the confirmation link.");
-                    Intent intent = new Intent(ForgetPassword.this, LoginActivity.class);
-                    startActivity(intent);
-                    finish();
+                    afterForgetPasswordDialog("Send Success", "Please check your email address for the confirmation link.");
                 } else {
                     try {
                         throw task.getException();
@@ -112,6 +109,26 @@ public class ForgetPassword extends AppCompatActivity {
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         dialog.cancel();
+                    }
+                });
+
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private void afterForgetPasswordDialog(String title, String msg){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(title);
+        builder.setMessage(msg);
+        builder.setCancelable(true);
+
+        builder.setPositiveButton(
+                "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        Intent intent = new Intent(ForgetPassword.this, LoginActivity.class);
+                        startActivity(intent);
+                        finish();
                     }
                 });
 

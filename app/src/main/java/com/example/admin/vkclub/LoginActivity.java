@@ -1,6 +1,7 @@
 package com.example.admin.vkclub;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -35,15 +36,21 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseNetworkException;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.EmailAuthCredential;
 import com.google.firebase.auth.FacebookAuthCredential;
 import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthActionCodeException;
+import com.google.firebase.auth.FirebaseAuthEmailException;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
+import com.google.firebase.auth.FirebaseAuthProvider;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.ProviderQueryResult;
 
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
 import android.os.Handler;
@@ -67,7 +74,7 @@ public class LoginActivity extends AppCompatActivity {
     SharedPreferences.Editor editor;
     String currentpass;
     private static Context context;
-
+    ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,6 +116,12 @@ public class LoginActivity extends AppCompatActivity {
         callbackManager = CallbackManager.Factory.create();
         LoginButton loginButton = (LoginButton)findViewById(R.id.facebookLoginbtn);
         loginButton.setReadPermissions("email", "public_profile");
+        loginButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showProgressDialog("Authenticating...");
+            }
+        });
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
@@ -133,7 +146,7 @@ public class LoginActivity extends AppCompatActivity {
     private void handleFacebookAccessToken(AccessToken accessToken) {
         Log.d(TAG, "handleFacebookAccessToken:" + accessToken);
 
-        AuthCredential credential = FacebookAuthProvider.getCredential(accessToken.getToken());
+        final AuthCredential credential = FacebookAuthProvider.getCredential(accessToken.getToken());
         mAuth.signInWithCredential(credential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
@@ -144,10 +157,11 @@ public class LoginActivity extends AppCompatActivity {
                     startActivity(intent);
                     finish();
                 } else {
-                    // If sign in fails, display a message to the user.
-                    Log.w(TAG, "signInWithCredential:failure", task.getException());
-                    Toast.makeText(LoginActivity.this, "Authentication failed.",
-                            Toast.LENGTH_SHORT).show();
+                    try {
+                        throw task.getException();
+                    }catch (Exception e){
+                        presentDialog("Login Failed..", e.getMessage());
+                    }
                 }
             }
         });
@@ -181,48 +195,61 @@ public class LoginActivity extends AppCompatActivity {
                 }
 
                 if (emailStatus && passStatus) {
-                    spinner.setVisibility(View.VISIBLE);
-                    mAuth.signInWithEmailAndPassword(getEmail, getPass).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+//                    spinner.setVisibility(View.VISIBLE);
+                    showProgressDialog("Authenticating...");
+                    mAuth.fetchProvidersForEmail(getEmail).addOnCompleteListener(new OnCompleteListener<ProviderQueryResult>() {
                         @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            if (task.isSuccessful()) {
-                                FirebaseUser mUser = mAuth.getCurrentUser();
-
-                                preference = PreferenceManager.getDefaultSharedPreferences(context);
-                                editor = preference.edit();
-                                editor.putString("pass", getPass);
-                                editor.commit();
-
-                                boolean emailVerified = mUser.isEmailVerified();
-                                System.out.println("Email Verified :::::::::::::::   " + emailVerified );
-                                if (emailVerified){
-                                    Intent intent =  new Intent(LoginActivity.this, Dashboard.class);
-                                    startActivity(intent);
-                                    finish();
-                                }else {
-                                    spinner.setVisibility(View.GONE);
-                                    presentDialog("Please verify your email address!", "Check email sent to " + getEmail + " for verification link.\nThank you for using Vkclub.");
-                                }
-                            } else {
+                        public void onComplete(@NonNull Task<ProviderQueryResult> task) {
+                            if (task.getResult().getProviders().size() == 1 && task.getResult().getProviders().get(0).equals("facebook.com")){
                                 spinner.setVisibility(View.GONE);
-                                if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
-                                    // Invalid password
-                                    presentDialog("Login Failed..", "Invalid Password");
-                                    preventSpam(submitAttempt++);
-                                } else if (task.getException() instanceof FirebaseAuthInvalidUserException) {
-                                    // Invalid Email id
-                                    presentDialog("Login Failed..", "Invalid Email");
-                                    preventSpam(submitAttempt++);
-                                } else if (task.getException() instanceof FirebaseNetworkException) {
-                                    // No internet Connection
-                                    presentDialog("Login Failed..", "No network coverage");
-                                } else {
-                                    try {
-                                        throw task.getException();
-                                    } catch (Exception e) {
-                                        presentDialog("Login Failed..", e.getMessage());
+                                presentDialog("Login Failed..", "An account already exists with the same email address" +
+                                        "but different sign-in credentials. Sign in using a provider associated with this email address.");
+                            }else {
+                                mAuth.signInWithEmailAndPassword(getEmail, getPass).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<AuthResult> task) {
+                                        if (task.isSuccessful()) {
+                                            FirebaseUser mUser = mAuth.getCurrentUser();
+
+                                            preference = PreferenceManager.getDefaultSharedPreferences(context);
+                                            editor = preference.edit();
+                                            editor.putString("pass", getPass);
+                                            editor.commit();
+
+                                            boolean emailVerified = mUser.isEmailVerified();
+                                            System.out.println("Email Verified :::::::::::::::   " + emailVerified );
+                                            if (emailVerified){
+                                                Intent intent =  new Intent(LoginActivity.this, Dashboard.class);
+                                                startActivity(intent);
+                                                finish();
+                                            }else {
+                                                spinner.setVisibility(View.GONE);
+                                                presentDialog("Please verify your email address!", "Check email sent to " + getEmail + " for verification link.\nThank you for using Vkclub.");
+                                            }
+                                        } else {
+//                                            spinner.setVisibility(View.GONE);
+                                            progressDialog.dismiss();
+                                            if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
+                                                // Invalid password
+                                                presentDialog("Login Failed..", "Invalid Password");
+                                                preventSpam(submitAttempt++);
+                                            }else if (task.getException() instanceof FirebaseAuthInvalidUserException) {
+                                                // Invalid Email id
+                                                presentDialog("Login Failed..", "Invalid Email");
+                                                preventSpam(submitAttempt++);
+                                            }else if (task.getException() instanceof FirebaseNetworkException) {
+                                                // No internet Connection
+                                                presentDialog("Login Failed..", "No network coverage");
+                                            }else {
+                                                try {
+                                                    throw task.getException();
+                                                } catch (Exception e) {
+                                                    presentDialog("Login Failed..", e.getMessage());
+                                                }
+                                            }
+                                        }
                                     }
-                                }
+                                });
                             }
                         }
                     });
@@ -285,5 +312,12 @@ public class LoginActivity extends AppCompatActivity {
 
         // Pass the activity result back to the Facebook SDK
         callbackManager.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void showProgressDialog(String message){
+        progressDialog = new ProgressDialog(LoginActivity.this);
+        progressDialog.setIndeterminate(true);
+        progressDialog.setMessage(message);
+        progressDialog.show();
     }
 }

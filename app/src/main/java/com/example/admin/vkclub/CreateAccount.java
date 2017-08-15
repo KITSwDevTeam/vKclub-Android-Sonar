@@ -144,21 +144,16 @@ public class CreateAccount extends AppCompatActivity {
                 for (int i=0; i<nameValue.length(); i++){
                     if (!((nameValue.charAt(i) > 64 && nameValue.charAt(i) < 91) ||
                             (nameValue.charAt(i) > 96 && nameValue.charAt(i) < 123) || nameValue.charAt(i) == 32)){
-                        nameValidate.setText("Special characters not allowed.");
-                        new android.os.Handler().postDelayed(
-                                new Runnable() {
-                                    public void run() {
-                                        nameValidate.setText("");
-                                    }
-                                }, 4000);
                         nameStatus = false;
+                        nameValidate.setText("Special characters not allowed.");
                     }else {
                         nameStatus = true;
+                        nameValidate.setText("");
                     }
                 }
 
                 if (nameValue.length() == 0) {
-                    nameValidate.setText("Please enter your name.");
+                    nameValidate.setText("Please enter a valid name.");
                     nameStatus = false;
                 }else {
                     nameValidate.setText("");
@@ -185,7 +180,7 @@ public class CreateAccount extends AppCompatActivity {
                     confirmpassValidate.setText("Please provide at least 6 characters.");
                     confirmpassStatus = false;
                 }else if (!confirmpassValue.equals(passwordValue)) {
-                    confirmpassValidate.setText("Passwword does not match!");
+                    confirmpassValidate.setText("Password does not match!");
                     confirmpassStatus = false;
                 }else {
                     confirmpassValidate.setText("");
@@ -194,17 +189,15 @@ public class CreateAccount extends AppCompatActivity {
 
                 if (nameStatus && emailStatus && passwordStatus && confirmpassStatus) {
                     createAccount(emailValue, passwordValue,nameValue);
-                }else {
-                    presentDialog("Error", "Something went wrong.");
                 }
             }
         });
     }
 
-    private void createAccount(final String email, final String password,final String nameValue) {
+    private void createAccount(final String successEmail, final String successpassword,final String nameValue) {
         spinner.setVisibility(View.VISIBLE);
         statusText.setText("Processing...");
-        mAuth.createUserWithEmailAndPassword(email,password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+        mAuth.createUserWithEmailAndPassword(successEmail,successpassword).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
@@ -221,12 +214,15 @@ public class CreateAccount extends AppCompatActivity {
                     if (task.getException() instanceof FirebaseAuthUserCollisionException) {
                         // thrown if there already exists an account with the given email address
                         presentDialog("SignUp Failed..", "Account is already exists with the given email address.");
+                        email.requestFocus();
                     } else if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
                         // thrown if the email address is malformed
                         presentDialog("SignUp Failed..", "The email address is malformed.");
+                        email.requestFocus();
                     } else if (task.getException() instanceof FirebaseAuthWeakPasswordException) {
                         // thrown if the password is not strong enough
                         presentDialog("SignUp Failed..", "The password is not strong enough.");
+                        pass.requestFocus();
                     } else {
                         try {
                             task.getException();
