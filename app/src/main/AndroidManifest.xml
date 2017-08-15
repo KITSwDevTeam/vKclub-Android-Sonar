@@ -116,10 +116,6 @@
 
         <service android:name=".GPS_Service" />
 
-        <activity
-            android:name=".Test"
-            android:label="@string/title_activity_test"
-            android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".Receivecall" />
         <activity android:name=".Calling" />
         <activity android:name=".Historydetail" />
@@ -154,7 +150,10 @@
             android:excludeFromRecents="true"
             android:theme="@style/NoTitleDialog" />
         <activity android:name=".CropImage" />
-        <activity android:name=".Setting"></activity>
+        <activity
+            android:name=".Setting">
+
+        </activity>
         <activity
             android:name=".WelcomeActivity"
             android:theme="@style/noActionBar" />

@@ -62,8 +62,7 @@
         <!-- inactive thumb color -->
         <item name="colorSwitchThumbNormal">@color/colorGrey</item>
 
-        <!-- inactive track color (30% transparency) -->
-        <!--<item name="android:colorForeground">@color/colorBlack</item>-->
+
     </style>
 
 </resources>
