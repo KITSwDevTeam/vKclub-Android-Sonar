@@ -14,6 +14,17 @@ buildscript {
     }
 }
 
+plugins {
+    id "org.sonarqube" version "2.5"
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectName", "vKclub Android"
+        property "sonar.projectKey", "kit.chain.vkclub-android"
+    }
+}
+
 allprojects {
     repositories {
         jcenter()

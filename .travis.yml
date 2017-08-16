@@ -1,0 +1,45 @@
+language: android
+sudo: false
+install: true
+
+addons:
+  sonarcloud:
+    organization: "sereiponna-github"
+    token:
+      secure: "qt+zrlqzitl5srmw5sA0J4hldBxkw/hx4DFAOBzx5flYtRlGEy5sKxZ093Zj/JsIxsHdNQR0OHVs0u4umYH/uyAxZLTUE6Fa+uaoooKSyrOGaNnqgNy9OVRN8vjQQy+ns5rpcEz9H9TLz3xfX0X2RtXQvw03rGJIpHzAAeQAvNO/3tGWNKMl1ZwABGksq0t4y8q8a6tWPh1i7HHie7pUcHd1oZ9ZyJQYqOODFRWQhXADVOaVm+YFBKnJvqOrOHk90lvOpPc8muLIPPwtmWTdrECH57z9ffN8ttR1kAD4ibz635qvIDApRBUjBFrZTZVCvXHpob1GOe2Mb0bRfDe3Bkdu3zlN4Ka73Uj+2qRsMGu8612ahxkSzqo63UutE3Kfb3SqneFZdo4AiJFzKKHW6xMGHCTJvrAutvkY2V5paIkx7G4FKV8EoiGsfVYcCSh4W5cLwVw3qYmStbMaZfGLO8fTxGJSc1eAItFP6wBq54DFFfX3NhLb2FgQLWyPg8DYRHapM5zxmSri68vsdcSzV0207GyXMpjlL+H7Svt91J+Zvha3cPmo9Najs75n7Az37GDHC7lTHj3Ha1w2rzxvTVyjkNCdPx6YOHnMO/nO1BJpZcyAMUJuLXOg3fLLFhbcnr6FP0rlkFZZGWBniPWMZZVprChPkXlFLnlZKDa9awM="
+
+#android:
+#  components:
+#    - tools
+#    - platform-tools
+#    - tools
+#    - build-tools-25.0.3
+#    - android-25
+#  licenses:
+#    - android-sdk-preview-license-.+
+#    - android-sdk-license-.+
+#    - google-gdk-license-.+
+#    - '.+'
+
+before_install:
+    - echo yes | sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.2"
+    - echo yes | sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout-solver;1.0.2"
+
+jdk:
+  - oraclejdk8
+
+before_script:
+  - chmod +x gradlew
+
+script:
+  - ./gradlew sonarqube
+
+cache:
+  directories:
+    - '$HOME/.m2/repository'
+    - '$HOME/.sonar/cache'
+    - '$HOME/.gradle'
+    - '.gradle'
+
+notifications:
+  email: false
