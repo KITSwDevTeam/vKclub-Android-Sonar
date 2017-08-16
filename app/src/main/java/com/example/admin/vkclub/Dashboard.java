@@ -7,6 +7,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.content.ComponentName;
 import android.graphics.Matrix;
 import android.media.Image;
 import android.media.MediaPlayer;
@@ -210,6 +211,8 @@ public class Dashboard extends AppCompatActivity {
     NotificationCompat.Builder mBuilder;
     int id = 1;
 
+    private static boolean testNotificationToggle = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -318,6 +321,17 @@ public class Dashboard extends AppCompatActivity {
 //                startActivity(getIntent());
 //                overridePendingTransition(0, 0);
                 displayProgressNotification();
+//                testNotificationToggle = !testNotificationToggle;
+//                presentDialog("Current test var", String.valueOf(testNotificationToggle));
+//                if (testNotificationToggle){
+//                    PackageManager pm = getApplicationContext().getPackageManager();
+//                    ComponentName componentName = new ComponentName(Dashboard.this, MyFirebaseMessagingService.class);
+//                    pm.setComponentEnabledSetting(componentName, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
+//                }else {
+//                    PackageManager pm = getApplicationContext().getPackageManager();
+//                    ComponentName componentName = new ComponentName(Dashboard.this, MyFirebaseMessagingService.class);
+//                    pm.setComponentEnabledSetting(componentName, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+//                }
             }
         });
 

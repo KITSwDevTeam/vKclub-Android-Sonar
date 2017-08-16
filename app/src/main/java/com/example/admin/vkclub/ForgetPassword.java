@@ -8,6 +8,8 @@ import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -34,6 +36,8 @@ public class ForgetPassword extends AppCompatActivity {
     // Declare TextView
     TextView emailValidate;
 
+    TextWatcher emailWatcher;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,9 +45,7 @@ public class ForgetPassword extends AppCompatActivity {
 
         submitBtn = (Button)findViewById(R.id.submit);
         backBtn = (Button)findViewById(R.id.backBtn);
-
         email = (EditText)findViewById(R.id.email);
-
         emailValidate = (TextView)findViewById(R.id.emailValidation);
 
         if(Build.VERSION.SDK_INT >= 21){
@@ -53,21 +55,43 @@ public class ForgetPassword extends AppCompatActivity {
             window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorStatusBar));
         }
 
+        emailWatcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.toString().indexOf("@") <= 0){
+                    emailValidate.setText("Please enter a valid email address.");
+                }else if (s.length() == 0){
+                    emailValidate.setText("Please provide your email address.");
+                }else {
+                    emailValidate.setText("");
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        };
+
+        email.addTextChangedListener(emailWatcher);
         backBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 finish();
             }
         });
-
         submitBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 String emailValue = email.getText().toString();
                 boolean emailStatus;
 
-                if ((emailValue.indexOf("@") <= 0) || !emailValue.contains(".com") || emailValue.isEmpty()) {
+                if ((emailValue.indexOf("@") <= 0)) {
                     emailValidate.setText("Please enter a valid email address.");
+                    emailStatus = false;
+                }else if (emailValue.length() == 0){
+                    emailValidate.setText("Please enter your email address.");
                     emailStatus = false;
                 } else {
                     emailValidate.setText("");

@@ -14,6 +14,8 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -49,6 +51,7 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.ProviderQueryResult;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Timer;
@@ -68,13 +71,13 @@ public class LoginActivity extends AppCompatActivity {
     // TextView Declaration
     private TextView emailValidation, passValidation;
     private int submitAttempt = 0;
-    private ProgressBar spinner;
     private CallbackManager callbackManager;
     SharedPreferences preference;
     SharedPreferences.Editor editor;
     String currentpass;
     private static Context context;
-    ProgressDialog progressDialog;
+    private static ProgressDialog progressDialog;
+    private TextWatcher editTextWatcher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,9 +91,6 @@ public class LoginActivity extends AppCompatActivity {
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.setStatusBarColor(ContextCompat.getColor(this, R.color.colorStatusBar));
         }
-
-        spinner = (ProgressBar)findViewById(R.id.progressBar1);
-        spinner.setVisibility(View.GONE);
 
         // Instantiate buttons
         signin = (Button)findViewById(R.id.signin);
@@ -112,6 +112,37 @@ public class LoginActivity extends AppCompatActivity {
         // call sign in function
         signIn(signin);
 
+        editTextWatcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (email.getText().hashCode() == s.hashCode()){
+                    if (s.toString().indexOf("@") <= 0){
+                        emailValidation.setText("Please enter a valid email address.");
+                    }else if (s.length() == 0){
+                        emailValidation.setText("Please enter your email address.");
+                    }else {
+                        emailValidation.setText("");
+                    }
+                }else {
+                    if ((s.length() != 0) && (s.length() < 6)){
+                        passValidation.setText("Please provide at least 6 characters.");
+                    }else if (s.length() == 0){
+                        passValidation.setText("Please provide your password.");
+                    }else {
+                        passValidation.setText("");
+                    }
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        };
+        email.addTextChangedListener(editTextWatcher);
+        pass.addTextChangedListener(editTextWatcher);
+
         // Initialize facebook login button
         callbackManager = CallbackManager.Factory.create();
         LoginButton loginButton = (LoginButton)findViewById(R.id.facebookLoginbtn);
@@ -126,19 +157,21 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onSuccess(LoginResult loginResult) {
                 Log.d(TAG, "facebook:onSuccess:" + loginResult);
+                dismissProgressDialog();
+                showProgressDialog("Loading...");
                 handleFacebookAccessToken(loginResult.getAccessToken());
             }
 
             @Override
             public void onCancel() {
                 Log.d(TAG, "facebook:onCancel");
-                // ...
+                dismissProgressDialog();
             }
 
             @Override
             public void onError(FacebookException error) {
                 Log.d(TAG, "facebook:onError", error);
-                // ...
+                dismissProgressDialog();
             }
         });
     }
@@ -157,6 +190,7 @@ public class LoginActivity extends AppCompatActivity {
                     startActivity(intent);
                     finish();
                 } else {
+                    dismissProgressDialog();
                     try {
                         throw task.getException();
                     }catch (Exception e){
@@ -175,7 +209,7 @@ public class LoginActivity extends AppCompatActivity {
                 final String getEmail = email.getText().toString();
                 final String getPass = pass.getText().toString();
 
-                if ((getEmail.indexOf("@") <= 0) || getEmail.length() == 0) {
+                if (getEmail.indexOf("@") <= 0) {
                     emailValidation.setText(getString(R.string.invalid_email));
                     emailStatus = false;
                 }else if (getEmail.length() == 0){
@@ -195,14 +229,13 @@ public class LoginActivity extends AppCompatActivity {
                 }
 
                 if (emailStatus && passStatus) {
-//                    spinner.setVisibility(View.VISIBLE);
                     showProgressDialog("Authenticating...");
                     mAuth.fetchProvidersForEmail(getEmail).addOnCompleteListener(new OnCompleteListener<ProviderQueryResult>() {
                         @Override
                         public void onComplete(@NonNull Task<ProviderQueryResult> task) {
                             if (task.getResult().getProviders().size() == 1 && task.getResult().getProviders().get(0).equals("facebook.com")){
-                                spinner.setVisibility(View.GONE);
-                                presentDialog("Login Failed..", "An account already exists with the same email address" +
+                                dismissProgressDialog();
+                                presentDialog("Login Failed..", "An account already exists with the same email address " +
                                         "but different sign-in credentials. Sign in using a provider associated with this email address.");
                             }else {
                                 mAuth.signInWithEmailAndPassword(getEmail, getPass).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -223,11 +256,10 @@ public class LoginActivity extends AppCompatActivity {
                                                 startActivity(intent);
                                                 finish();
                                             }else {
-                                                spinner.setVisibility(View.GONE);
+                                                dismissProgressDialog();
                                                 presentDialog("Please verify your email address!", "Check email sent to " + getEmail + " for verification link.\nThank you for using Vkclub.");
                                             }
                                         } else {
-//                                            spinner.setVisibility(View.GONE);
                                             progressDialog.dismiss();
                                             if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
                                                 // Invalid password
@@ -259,11 +291,11 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void preventSpam(int att) {
-        if (att < 5) {
-            Toast.makeText(LoginActivity.this, "Login Attempt " + submitAttempt, Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(LoginActivity.this, "You cannot login anymore...", Toast.LENGTH_SHORT).show();
-        }
+//        if (att < 5) {
+//            Toast.makeText(LoginActivity.this, "Login Attempt " + submitAttempt, Toast.LENGTH_SHORT).show();
+//        } else {
+//            Toast.makeText(LoginActivity.this, "You cannot login anymore...", Toast.LENGTH_SHORT).show();
+//        }
     }
 
     private void presentDialog(String title, String msg) {
@@ -319,5 +351,9 @@ public class LoginActivity extends AppCompatActivity {
         progressDialog.setIndeterminate(true);
         progressDialog.setMessage(message);
         progressDialog.show();
+    }
+
+    private void dismissProgressDialog(){
+        progressDialog.dismiss();
     }
 }
