@@ -21,7 +21,7 @@ plugins {
 sonarqube {
     properties {
         property "sonar.projectName", "vKclub Android"
-        property "sonar.projectKey", "kit.chain.vkclub-android"
+        property "sonar.projectKey", "kit.chain.vkclub_android"
     }
 }
 
